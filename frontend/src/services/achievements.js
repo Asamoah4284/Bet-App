@@ -1,3 +1,11 @@
+// `color` maps to a theme color key (with a matching `<color>Muted` variant).
+export const ACHIEVEMENT_CATEGORIES = {
+  streakDays: { label: 'Gambling-free streak', color: 'accent' },
+  journalEntries: { label: 'Journaling', color: 'primary' },
+  urgesLogged: { label: 'Urge awareness', color: 'secondary' },
+  moneyKept: { label: 'Money kept', color: 'secondary' },
+};
+
 export const ACHIEVEMENTS = [
   {
     id: 'first-day',
