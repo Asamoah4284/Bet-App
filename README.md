@@ -79,11 +79,12 @@ npm test
 - **Financial tracking** - money kept total, log money set aside (or slips, which reset the streak), savings goal with progress bar, last-7-days net-saved chart
 - **Accountability buddies** - share your buddy code, send/accept/decline requests, post daily check-ins (streak and money kept attached automatically), view buddies' check-ins
 - **Support** - helplines (tap to call), communities and reading resources, crisis guidance
+- **Reminders** - optional daily check-in and encouragement notifications at times you choose (`expo-notifications`), scheduled on-device and persisted
 - **Theming** - light / dark / system appearance, persisted, across every screen
 
 Habit and financial data stays local on the device (SQLite). Only accounts, buddies and check-ins go through the backend.
 
 ## Tech
 
-- Frontend: Expo, React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient
+- Frontend: Expo SDK 54 (Expo Go compatible), React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient, expo-notifications
 - Backend: Express, MongoDB (Mongoose), JWT (jsonwebtoken), bcryptjs

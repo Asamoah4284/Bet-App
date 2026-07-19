@@ -17,6 +17,7 @@ import { BuddyDetailScreen } from '../screens/BuddyDetailScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { UrgeSOSScreen } from '../screens/UrgeSOSScreen';
 import { SafetyPlanScreen } from '../screens/SafetyPlanScreen';
+import { ReminderSettingsScreen } from '../screens/ReminderSettingsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -65,6 +66,7 @@ export function RootNavigator({ bootstrapping }) {
             </Stack.Group>
             <Stack.Screen name="BuddyDetail" component={BuddyDetailScreen} />
             <Stack.Screen name="Profile" component={ProfileScreen} />
+            <Stack.Screen name="Reminders" component={ReminderSettingsScreen} />
           </>
         )}
       </Stack.Navigator>

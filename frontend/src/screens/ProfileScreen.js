@@ -61,6 +61,18 @@ export function ProfileScreen({ navigation }) {
         />
       </Card>
 
+      <Card title="Reminders">
+        <Text style={[theme.typography.body, { color: theme.colors.text }]}>
+          Set gentle daily nudges for check-ins and encouragement.
+        </Text>
+        <Button
+          label="Manage reminders"
+          variant="soft"
+          onPress={() => navigation.navigate('Reminders')}
+          style={styles.safetyButton}
+        />
+      </Card>
+
       <Button label="Sign out" variant="ghost" onPress={logout} style={styles.signOut} />
     </Screen>
   );

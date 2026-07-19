@@ -39,7 +39,14 @@
           }
         }
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-notifications",
+        {
+          "color": "#2F3A8F"
+        }
+      ],
+      "expo-font"
     ]
   }
 }
