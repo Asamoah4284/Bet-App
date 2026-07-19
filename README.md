@@ -88,11 +88,11 @@ npm test
 ## Features
 
 - **Splash, onboarding & auth** - branded splash, 3-page illustrated onboarding, login with email **or username**, signup with optional username, forgot-password reset codes, Google sign-in, session restore via secure token storage + `/api/auth/me`
-- **Home dashboard** - gambling-free streak, money kept, one-tap Urge SOS, today's journal at a glance
+- **Home dashboard** - gambling-free streak based on honest daily reflections, one-day catch-up, money kept, one-tap Urge SOS, and today's journal at a glance
 - **Urge SOS & safety plan** - automatic 60-second guided breathing, personal recovery reasons, immediately doable coping actions, direct buddy/support access, and optional trigger logging; the editable plan stays on-device
 - **Habit tracking** - log urges (intensity slider) with triggers (emotion, location, time of day auto-detected), one journal entry per day with mood, top-trigger insights
-- **Financial tracking** - money kept total, log money set aside (or slips, which reset the streak), savings goal with progress bar, last-7-days net-saved chart
-- **Accountability buddies** - share your buddy code, send/accept/decline requests, post daily check-ins (streak and money kept attached automatically), view buddies' check-ins
+- **Financial tracking** - money kept total, log money set aside or slipped, savings goal with progress bar, last-7-days net-saved chart
+- **Accountability buddies** - find opted-in users by display name or username, share a buddy code, send/accept/decline/cancel requests, post daily check-ins, and view buddies' check-ins; search discoverability is off by default
 - **Profile & sharing** - editable display name, username and bio, private on-device profile photo, and a web/deep-link invitation that lets another user preview your safe public profile and add you as a buddy
 - **Achievements & progress** - private streak, journaling, urge-awareness and money-kept achievements, a streak detail view, and next-achievement progress
 - **Opt-in leaderboards** - friends and global streak rankings; disabled by default and limited to display name, username and streak (never money, urges, journal data, email or profile photo)

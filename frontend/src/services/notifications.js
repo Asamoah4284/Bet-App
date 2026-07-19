@@ -74,8 +74,8 @@ export async function syncReminders(settings) {
 
   if (settings.checkinEnabled) {
     await scheduleDaily(DAILY_CHECKIN_ID, settings.checkinHour, settings.checkinMinute, {
-      title: 'Daily check-in',
-      body: 'Take a moment to log how today went. Your buddies are rooting for you.',
+      title: 'Daily reflection',
+      body: 'Did you stay gambling-free today? One honest answer keeps your streak meaningful.',
     });
   }
 

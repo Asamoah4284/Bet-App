@@ -1,4 +1,6 @@
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '../components/Screen';
@@ -12,6 +14,11 @@ import { achievementSummary } from '../services/achievements';
 export function StreakDetailScreen({ navigation }) {
   const theme = useTheme();
   const streakDays = useHabitStore((state) => state.streakDays);
+  const todayKey = useHabitStore((state) => state.todayKey);
+  const yesterdayKey = useHabitStore((state) => state.yesterdayKey);
+  const todayReflection = useHabitStore((state) => state.todayReflection);
+  const yesterdayReflection = useHabitStore((state) => state.yesterdayReflection);
+  const refresh = useHabitStore((state) => state.refresh);
   const urges = useHabitStore((state) => state.urges);
   const journalEntries = useHabitStore((state) => state.journalEntries);
   const moneyKept = useFinanceStore((state) => state.summary.moneyKept);
@@ -22,6 +29,12 @@ export function StreakDetailScreen({ navigation }) {
     moneyKept,
   });
   const next = summary.next;
+
+  useFocusEffect(
+    useCallback(() => {
+      refresh();
+    }, [refresh])
+  );
 
   return (
     <Screen scroll>
@@ -38,9 +51,60 @@ export function StreakDetailScreen({ navigation }) {
           gambling-free {streakDays === 1 ? 'day' : 'days'}
         </Text>
         <Text style={[theme.typography.caption, styles.heroCopy]}>
-          Your streak grows automatically every full day without a logged slip.
+          Each day counts when you confirm it in your daily reflection.
         </Text>
       </LinearGradient>
+
+      <View
+        style={[
+          styles.reflection,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radii.lg,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.reflectionIcon,
+            { backgroundColor: theme.colors.primaryMuted, borderRadius: theme.radii.md },
+          ]}
+        >
+          <Ionicons
+            name={todayReflection?.status === 'clean' ? 'shield-checkmark' : 'calendar-outline'}
+            size={23}
+            color={theme.colors.primary}
+          />
+        </View>
+        <View style={styles.reflectionBody}>
+          <Text style={[theme.typography.subtitle, { color: theme.colors.text }]}>
+            {todayReflection?.status === 'clean'
+              ? 'Today is confirmed'
+              : todayReflection?.status === 'slipped'
+                ? 'Today is recorded as a slip'
+                : 'Today is not confirmed yet'}
+          </Text>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 3 }]}>
+            Missing a reflection does not mean failure—it simply leaves that day unconfirmed.
+          </Text>
+        </View>
+      </View>
+      <Button
+        label={todayReflection ? "Review today's reflection" : "Complete today's reflection"}
+        icon="sunny-outline"
+        variant="soft"
+        onPress={() => navigation.navigate('DailyReflection', { dayKey: todayKey })}
+      />
+      {!yesterdayReflection && yesterdayKey ? (
+        <Button
+          label="Reflect on yesterday"
+          icon="time-outline"
+          variant="ghost"
+          onPress={() => navigation.navigate('DailyReflection', { dayKey: yesterdayKey })}
+          style={styles.catchUpButton}
+        />
+      ) : null}
 
       {next ? (
         <View
@@ -110,8 +174,8 @@ export function StreakDetailScreen({ navigation }) {
         onPress={() => navigation.navigate('Achievements')}
       />
       <Text style={[theme.typography.caption, styles.note, { color: theme.colors.textSecondary }]}>
-        Logging a slip resets the gambling-free streak. It never erases your achievements or the work
-        that got you here.
+        Confirming a slip resets the current streak, but it does not erase the effort or insight that
+        got you here. You can begin again with the next clean day.
       </Text>
     </Screen>
   );
@@ -140,6 +204,27 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 18,
     marginTop: 16,
+  },
+  reflection: {
+    borderWidth: 1,
+    padding: 16,
+    marginTop: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  reflectionIcon: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reflectionBody: {
+    flex: 1,
+  },
+  catchUpButton: {
+    marginTop: 8,
   },
   nextRow: {
     flexDirection: 'row',

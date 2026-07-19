@@ -1,4 +1,9 @@
 import * as SQLite from 'expo-sqlite';
+import {
+  calculateReflectionStreak,
+  localDayKey,
+  reflectionDayKeys,
+} from './reflections';
 
 // Habit and financial data is private and stays on-device (see README).
 let dbPromise = null;
@@ -39,29 +44,19 @@ function getDb() {
           key TEXT PRIMARY KEY,
           value TEXT
         );
-      `);
 
-      const streakStart = await db.getFirstAsync(
-        "SELECT value FROM settings WHERE key = 'streak_start'"
-      );
-      if (!streakStart) {
-        await db.runAsync(
-          "INSERT INTO settings (key, value) VALUES ('streak_start', datetime('now'))"
+        CREATE TABLE IF NOT EXISTS daily_reflections (
+          day_key TEXT PRIMARY KEY,
+          status TEXT NOT NULL CHECK (status IN ('clean', 'slipped')),
+          confirmed_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
-      }
+      `);
 
       return db;
     });
   }
 
   return dbPromise;
-}
-
-function localDayKey(date = new Date()) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
 }
 
 export function timeOfDayFor(date = new Date()) {
@@ -204,25 +199,48 @@ export async function getMoneySummary() {
   };
 }
 
-// --- Streak & settings ---
+// --- Daily reflections, streak & settings ---
 
-export async function getStreakDays() {
-  const db = await getDb();
-
-  const lastSlip = await db.getFirstAsync(
-    "SELECT created_at FROM money_logs WHERE kind = 'slip' ORDER BY created_at DESC LIMIT 1"
-  );
-  const start = await db.getFirstAsync("SELECT value FROM settings WHERE key = 'streak_start'");
-
-  const from = lastSlip ? lastSlip.created_at : start ? start.value : null;
-  if (!from) {
-    return 0;
+export async function upsertDailyReflection({ dayKey, status }) {
+  const allowedDays = Object.values(reflectionDayKeys());
+  if (!allowedDays.includes(dayKey)) {
+    throw new Error('You can only reflect on today or yesterday.');
+  }
+  if (!['clean', 'slipped'].includes(status)) {
+    throw new Error('Choose whether the day was gambling-free or included a slip.');
   }
 
-  // SQLite datetime('now') strings are UTC without a timezone marker.
-  const fromDate = new Date(from.replace(' ', 'T') + 'Z');
-  const diffMs = Date.now() - fromDate.getTime();
-  return Math.max(0, Math.floor(diffMs / (24 * 60 * 60 * 1000)));
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO daily_reflections (day_key, status, confirmed_at)
+     VALUES (?, ?, datetime('now'))
+     ON CONFLICT(day_key) DO UPDATE SET
+       status = excluded.status,
+       confirmed_at = excluded.confirmed_at`,
+    dayKey,
+    status
+  );
+}
+
+export async function getReflectionSummary() {
+  const db = await getDb();
+  const reflections = await db.getAllAsync(
+    'SELECT day_key, status, confirmed_at FROM daily_reflections ORDER BY day_key DESC'
+  );
+  const { today, yesterday } = reflectionDayKeys();
+
+  return {
+    todayKey: today,
+    yesterdayKey: yesterday,
+    todayReflection: reflections.find((item) => item.day_key === today) || null,
+    yesterdayReflection: reflections.find((item) => item.day_key === yesterday) || null,
+    streakDays: calculateReflectionStreak(reflections),
+  };
+}
+
+export async function getStreakDays() {
+  const summary = await getReflectionSummary();
+  return summary.streakDays;
 }
 
 export async function getSetting(key) {

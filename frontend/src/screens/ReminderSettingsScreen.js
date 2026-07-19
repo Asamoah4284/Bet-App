@@ -94,10 +94,10 @@ export function ReminderSettingsScreen() {
         </Card>
       ) : null}
 
-      <Card title="Daily check-in reminder">
+      <Card title="Daily reflection reminder">
         <View style={styles.toggleRow}>
           <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>
-            Remind me to log how my day went
+            Remind me to confirm whether I stayed gambling-free
           </Text>
           <Switch
             value={settings.checkinEnabled}

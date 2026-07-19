@@ -106,6 +106,10 @@ export function HomeScreen({ navigation }) {
   const theme = useTheme();
   const user = useAuthStore((state) => state.user);
   const streakDays = useHabitStore((state) => state.streakDays);
+  const todayKey = useHabitStore((state) => state.todayKey);
+  const yesterdayKey = useHabitStore((state) => state.yesterdayKey);
+  const todayReflection = useHabitStore((state) => state.todayReflection);
+  const yesterdayReflection = useHabitStore((state) => state.yesterdayReflection);
   const insights = useHabitStore((state) => state.insights);
   const todayEntry = useHabitStore((state) => state.todayEntry);
   const refreshHabits = useHabitStore((state) => state.refresh);
@@ -180,6 +184,92 @@ export function HomeScreen({ navigation }) {
           </Pressable>
         </View>
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={
+          todayReflection ? "Review today's reflection" : "Complete today's reflection"
+        }
+        onPress={() => navigation.navigate('DailyReflection', { dayKey: todayKey })}
+        style={({ pressed }) => [
+          styles.reflectionCard,
+          theme.elevation.card,
+          {
+            backgroundColor:
+              todayReflection?.status === 'clean'
+                ? theme.colors.primaryMuted
+                : todayReflection?.status === 'slipped'
+                  ? theme.colors.secondaryMuted
+                  : theme.colors.surface,
+            borderColor:
+              todayReflection?.status === 'clean'
+                ? theme.colors.primary
+                : todayReflection?.status === 'slipped'
+                  ? theme.colors.secondary
+                  : theme.colors.border,
+            borderRadius: theme.radii.lg,
+            opacity: pressed ? 0.82 : 1,
+          },
+        ]}
+      >
+        <View
+          style={[
+            styles.reflectionIcon,
+            {
+              backgroundColor: todayReflection ? theme.colors.surface : theme.colors.accentMuted,
+              borderRadius: theme.radii.md,
+            },
+          ]}
+        >
+          <Ionicons
+            name={
+              todayReflection?.status === 'clean'
+                ? 'shield-checkmark'
+                : todayReflection?.status === 'slipped'
+                  ? 'heart'
+                  : 'sunny-outline'
+            }
+            size={24}
+            color={
+              todayReflection?.status === 'clean'
+                ? theme.colors.primary
+                : todayReflection?.status === 'slipped'
+                  ? theme.colors.secondary
+                  : theme.colors.accent
+            }
+          />
+        </View>
+        <View style={styles.reflectionBody}>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+            DAILY REFLECTION
+          </Text>
+          <Text style={[theme.typography.subtitle, { color: theme.colors.text, marginTop: 2 }]}>
+            {todayReflection?.status === 'clean'
+              ? 'Today is confirmed gambling-free'
+              : todayReflection?.status === 'slipped'
+                ? 'Today is recorded honestly'
+                : 'Did you stay gambling-free today?'}
+          </Text>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 3 }]}>
+            {todayReflection ? 'Tap to review or correct your answer.' : 'One answer keeps your streak meaningful.'}
+          </Text>
+        </View>
+        <Ionicons name="chevron-forward" size={20} color={theme.colors.textSecondary} />
+      </Pressable>
+
+      {!yesterdayReflection && yesterdayKey ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('DailyReflection', { dayKey: yesterdayKey })}
+          style={styles.catchUp}
+        >
+          <Ionicons name="time-outline" size={17} color={theme.colors.primary} />
+          <Text style={[theme.typography.caption, { color: theme.colors.primary, fontWeight: '700' }]}>
+            Missed yesterday? Reflect now
+          </Text>
+          <Ionicons name="arrow-forward" size={15} color={theme.colors.primary} />
+        </Pressable>
+      ) : null}
 
       <Pressable
         accessibilityRole="button"
@@ -266,7 +356,7 @@ export function HomeScreen({ navigation }) {
         />
         <QuickAction
           icon="megaphone-outline"
-          label="Check in"
+          label="Buddy check-in"
           color={theme.colors.primary}
           colorMuted={theme.colors.primaryMuted}
           onPress={() => navigation.navigate('Checkin')}
@@ -410,6 +500,31 @@ const styles = StyleSheet.create({
     height: 40,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  reflectionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    padding: 15,
+    marginBottom: 8,
+  },
+  reflectionIcon: {
+    width: 46,
+    height: 46,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  reflectionBody: {
+    flex: 1,
+  },
+  catchUp: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 9,
+    marginBottom: 8,
   },
   streakCard: {
     padding: 22,

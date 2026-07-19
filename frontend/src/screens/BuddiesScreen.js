@@ -113,8 +113,10 @@ export function BuddiesScreen({ navigation }) {
       await action();
       setMessage(successMessage);
       if (searched && query.trim().length >= 2) await searchUsers(query);
+      return true;
     } catch (err) {
       setMessage(err.message);
+      return false;
     } finally {
       setBusyKey(null);
     }
@@ -142,10 +144,11 @@ export function BuddiesScreen({ navigation }) {
     }
   };
 
-  const requestByCode = () => {
+  const requestByCode = async () => {
     if (!code.trim()) return;
     const normalized = code.trim().toUpperCase();
-    run('code', () => sendRequest(normalized), 'Buddy request sent.').then(() => setCode(''));
+    const sent = await run('code', () => sendRequest(normalized), 'Buddy request sent.');
+    if (sent) setCode('');
   };
 
   return (

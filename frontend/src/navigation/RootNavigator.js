@@ -25,6 +25,7 @@ import { StreakDetailScreen } from '../screens/StreakDetailScreen';
 import { BuddyInviteScreen } from '../screens/BuddyInviteScreen';
 import { PrivacyScreen } from '../screens/PrivacyScreen';
 import { SupportScreen } from '../screens/SupportScreen';
+import { DailyReflectionScreen } from '../screens/DailyReflectionScreen';
 
 const Stack = createNativeStackNavigator();
 const linking = {
@@ -79,6 +80,7 @@ export function RootNavigator({ bootstrapping }) {
               <Stack.Screen name="LogMoney" component={LogMoneyScreen} />
               <Stack.Screen name="Checkin" component={CheckinScreen} />
               <Stack.Screen name="SafetyPlan" component={SafetyPlanScreen} />
+              <Stack.Screen name="DailyReflection" component={DailyReflectionScreen} />
             </Stack.Group>
             <Stack.Screen name="BuddyDetail" component={BuddyDetailScreen} />
             <Stack.Screen name="Reminders" component={ReminderSettingsScreen} />

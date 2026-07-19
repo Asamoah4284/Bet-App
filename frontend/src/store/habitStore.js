@@ -1,13 +1,17 @@
 import { create } from 'zustand';
 import {
-  getStreakDays,
+  getReflectionSummary,
   getTodayJournalEntry,
   getUrgeInsights,
   insertUrge,
   listJournalEntries,
   listUrges,
+  upsertDailyReflection,
   upsertJournalEntry,
 } from '../services/localDb';
+import { reflectionDayKeys } from '../services/reflections';
+
+const initialDays = reflectionDayKeys();
 
 export const useHabitStore = create((set, get) => ({
   urges: [],
@@ -15,19 +19,30 @@ export const useHabitStore = create((set, get) => ({
   todayEntry: null,
   insights: null,
   streakDays: 0,
+  todayKey: initialDays.today,
+  yesterdayKey: initialDays.yesterday,
+  todayReflection: null,
+  yesterdayReflection: null,
   loading: false,
 
   refresh: async () => {
     set({ loading: true });
     try {
-      const [urges, journalEntries, todayEntry, insights, streakDays] = await Promise.all([
+      const [urges, journalEntries, todayEntry, insights, reflection] = await Promise.all([
         listUrges(),
         listJournalEntries(),
         getTodayJournalEntry(),
         getUrgeInsights(),
-        getStreakDays(),
+        getReflectionSummary(),
       ]);
-      set({ urges, journalEntries, todayEntry, insights, streakDays, loading: false });
+      set({
+        urges,
+        journalEntries,
+        todayEntry,
+        insights,
+        ...reflection,
+        loading: false,
+      });
     } catch {
       set({ loading: false });
     }
@@ -40,6 +55,11 @@ export const useHabitStore = create((set, get) => ({
 
   saveJournalEntry: async ({ mood, note }) => {
     await upsertJournalEntry({ mood, note });
+    await get().refresh();
+  },
+
+  confirmReflection: async ({ dayKey, status }) => {
+    await upsertDailyReflection({ dayKey, status });
     await get().refresh();
   },
 }));

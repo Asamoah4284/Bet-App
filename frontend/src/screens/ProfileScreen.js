@@ -252,7 +252,7 @@ export function ProfileScreen({ navigation }) {
           color={theme.colors.accent}
           muted={theme.colors.accentMuted}
           title="Reminders"
-          detail="Daily check-in and encouragement times"
+          detail="Daily reflection and encouragement times"
           onPress={() => navigation.navigate('Reminders')}
         />
       </View>
