@@ -4,17 +4,24 @@ const { spawn } = require('child_process');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 async function main() {
-  const mongo = await MongoMemoryServer.create();
+  const mongo = await MongoMemoryServer.create({
+    instance: { launchTimeout: 60000 },
+  });
   console.log('In-memory MongoDB at', mongo.getUri());
 
-  const server = spawn('node', ['server.js'], {
+  const server = spawn(process.execPath, ['server.js'], {
+    cwd: __dirname,
     env: { ...process.env, MONGODB_URI: mongo.getUri('betapp'), PORT: '3100' },
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
   let serverOut = '';
   server.stdout.on('data', (d) => (serverOut += d));
   server.stderr.on('data', (d) => (serverOut += d));
+  server.on('error', (err) => {
+    serverOut += `\nspawn error: ${err.message}`;
+  });
 
-  const base = 'http://localhost:3100';
+  const base = 'http://127.0.0.1:3100';
   const post = async (path, body, token) =>
     (
       await fetch(base + path, {
@@ -30,13 +37,28 @@ async function main() {
     (await fetch(base + path, { headers: { Authorization: 'Bearer ' + token } })).json();
 
   // Wait for the server to come up
-  for (let i = 0; i < 30; i++) {
+  let healthy = false;
+  for (let i = 0; i < 60; i++) {
     try {
-      await fetch(base + '/health');
-      break;
+      const res = await fetch(base + '/health');
+      if (res.ok) {
+        healthy = true;
+        break;
+      }
     } catch {
-      await new Promise((r) => setTimeout(r, 500));
+      // still starting
     }
+    await new Promise((r) => setTimeout(r, 500));
+  }
+
+  if (!healthy) {
+    console.log('TEST FAILED: server never became healthy');
+    console.log('--- server output ---');
+    console.log(serverOut);
+    server.kill();
+    await mongo.stop();
+    process.exitCode = 1;
+    return;
   }
 
   try {
