@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { BackHeader } from '../components/BackHeader';
 import { useTheme } from '../theme';
 import { useBuddyStore } from '../store/buddyStore';
 
@@ -55,10 +56,8 @@ export function BuddyDetailScreen({ route, navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text, marginBottom: 4 }]}>
-        {displayName}
-      </Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 16 }]}>
+      <BackHeader title={displayName} />
+      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: -8, marginBottom: 16 }]}>
         Their recent check-ins
       </Text>
 

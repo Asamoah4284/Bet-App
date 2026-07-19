@@ -1,13 +1,10 @@
-import { Platform } from 'react-native';
-
-const DEFAULT_HOST = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-
-// Physical devices cannot reach the host machine via localhost.
-// Set EXPO_PUBLIC_API_URL to your computer's LAN IP, e.g. http://192.168.1.20:3000
+// Production backend on Render. Override for local development with:
+//   $env:EXPO_PUBLIC_API_URL = "http://localhost:3000"   (or your LAN IP)
 export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || `http://${DEFAULT_HOST}:3000`;
+  process.env.EXPO_PUBLIC_API_URL || 'https://bet-app-dgqz.onrender.com';
 
-const DEFAULT_TIMEOUT_MS = 12000;
+// Render free tier can take ~30–50s on a cold start after idle.
+const DEFAULT_TIMEOUT_MS = 45000;
 
 export class ApiError extends Error {
   constructor(message, status, details) {
@@ -90,21 +87,38 @@ export async function apiRequest(path, { method = 'GET', body, token, timeoutMs 
 }
 
 export const authApi = {
-  signup: ({ email, password, displayName }) =>
+  signup: ({ email, password, displayName, username }) =>
     apiRequest('/api/auth/signup', {
       method: 'POST',
-      body: { email, password, displayName },
+      body: { email, password, displayName, username },
     }),
-  login: ({ email, password }) =>
+  login: ({ identifier, password }) =>
     apiRequest('/api/auth/login', {
       method: 'POST',
-      body: { email, password },
+      body: { identifier, password },
+    }),
+  google: ({ idToken }) =>
+    apiRequest('/api/auth/google', {
+      method: 'POST',
+      body: { idToken },
+    }),
+  forgotPassword: ({ email }) =>
+    apiRequest('/api/auth/forgot-password', {
+      method: 'POST',
+      body: { email },
+    }),
+  resetPassword: ({ email, code, newPassword }) =>
+    apiRequest('/api/auth/reset-password', {
+      method: 'POST',
+      body: { email, code, newPassword },
     }),
   me: (token) => apiRequest('/api/auth/me', { token }),
 };
 
 export const buddiesApi = {
   list: (token) => apiRequest('/api/buddies', { token }),
+  search: (token, query) =>
+    apiRequest(`/api/buddies/search?q=${encodeURIComponent(query)}`, { token }),
   sendRequest: (token, buddyCode) =>
     apiRequest('/api/buddies/request', {
       method: 'POST',
@@ -126,4 +140,14 @@ export const checkinsApi = {
     }),
   mine: (token) => apiRequest('/api/checkins', { token }),
   forBuddy: (token, userId) => apiRequest(`/api/checkins/buddy/${userId}`, { token }),
+};
+
+export const profileApi = {
+  update: (token, profile) =>
+    apiRequest('/api/profile/me', { method: 'PUT', body: profile, token }),
+  syncStats: (token, stats) =>
+    apiRequest('/api/profile/sync-stats', { method: 'POST', body: stats, token }),
+  shared: (buddyCode) => apiRequest(`/api/profile/share/${encodeURIComponent(buddyCode)}`),
+  leaderboard: (token, scope = 'global') =>
+    apiRequest(`/api/profile/leaderboard?scope=${encodeURIComponent(scope)}`, { token }),
 };

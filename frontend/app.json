@@ -2,6 +2,7 @@
   "expo": {
     "name": "Betapp",
     "slug": "betapp",
+    "scheme": "betapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -46,7 +47,8 @@
           "color": "#2F3A8F"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "@react-native-google-signin/google-signin"
     ]
   }
 }

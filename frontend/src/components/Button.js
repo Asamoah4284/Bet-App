@@ -1,10 +1,12 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
 export function Button({
   label,
   onPress,
   variant = 'primary',
+  icon,
   disabled = false,
   loading = false,
   style,
@@ -17,6 +19,7 @@ export function Button({
     secondary: theme.colors.secondary,
     ghost: 'transparent',
     soft: theme.colors.primaryMuted,
+    outline: theme.colors.surface,
   };
 
   const labels = {
@@ -24,7 +27,10 @@ export function Button({
     secondary: theme.colors.textInverse,
     ghost: theme.colors.primary,
     soft: theme.colors.primary,
+    outline: theme.colors.text,
   };
+
+  const bordered = variant === 'ghost' || variant === 'outline';
 
   return (
     <Pressable
@@ -35,8 +41,8 @@ export function Button({
         styles.base,
         {
           backgroundColor: backgrounds[variant],
-          borderColor: variant === 'ghost' ? theme.colors.border : 'transparent',
-          borderWidth: variant === 'ghost' ? 1 : 0,
+          borderColor: bordered ? theme.colors.border : 'transparent',
+          borderWidth: bordered ? 1 : 0,
           opacity: isDisabled ? 0.55 : pressed ? 0.9 : 1,
           borderRadius: theme.radii.md,
         },
@@ -46,7 +52,10 @@ export function Button({
       {loading ? (
         <ActivityIndicator color={labels[variant]} />
       ) : (
-        <Text style={[theme.typography.button, { color: labels[variant] }]}>{label}</Text>
+        <View style={styles.content}>
+          {icon ? <Ionicons name={icon} size={20} color={labels[variant]} /> : null}
+          <Text style={[theme.typography.button, { color: labels[variant] }]}>{label}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -58,5 +67,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 18,
+  },
+  content: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
   },
 });

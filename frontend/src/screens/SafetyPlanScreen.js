@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useSafetyPlanStore } from '../store/safetyPlanStore';
 
@@ -55,12 +56,12 @@ export function SafetyPlanScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>My safety plan</Text>
-      <Text
-        style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}
-      >
-        Write these while you feel steady. Betapp will put them in front of you when an urge hits.
-      </Text>
+      <ModalHeader
+        kicker="Urge support"
+        title="My safety plan"
+        subtitle="Write these while you feel steady. Betapp will put them in front of you when an urge hits."
+        accent="secondary"
+      />
 
       <Card title="Why recovery matters to me" style={styles.firstCard}>
         <Text
@@ -128,7 +129,6 @@ export function SafetyPlanScreen({ navigation }) {
 
       <View style={styles.actions}>
         <Button label="Save safety plan" onPress={onSave} loading={saving} />
-        <Button label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </View>
 
       <Text
@@ -145,7 +145,7 @@ export function SafetyPlanScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   firstCard: {
-    marginTop: 24,
+    marginTop: 8,
   },
   input: {
     minHeight: 132,

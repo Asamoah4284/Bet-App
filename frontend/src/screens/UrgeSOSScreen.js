@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { Button } from '../components/Button';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useSafetyPlanStore } from '../store/safetyPlanStore';
 
@@ -94,24 +95,7 @@ export function UrgeSOSScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <View style={styles.topRow}>
-        <View style={styles.titleWrap}>
-          <Text style={[theme.typography.caption, { color: theme.colors.secondary }]}>
-            URGE SOS
-          </Text>
-          <Text style={[theme.typography.title, { color: theme.colors.text }]}>
-            This feeling will pass
-          </Text>
-        </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Close urge support"
-          onPress={() => navigation.goBack()}
-          hitSlop={10}
-        >
-          <Ionicons name="close" size={28} color={theme.colors.textSecondary} />
-        </Pressable>
-      </View>
+      <ModalHeader kicker="Urge SOS" title="This feeling will pass" accent="secondary" />
 
       <LinearGradient
         colors={theme.colors.gradient}
@@ -238,17 +222,6 @@ export function UrgeSOSScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  titleWrap: {
-    flex: 1,
-    gap: 3,
-    paddingRight: 12,
-  },
   breathCard: {
     alignItems: 'center',
     padding: 24,

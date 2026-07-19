@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ApiError, authApi } from '../services/api';
+import { ApiError, authApi, profileApi } from '../services/api';
 import { tokenStorage } from '../services/secureStorage';
 
 export const useAuthStore = create((set, get) => ({
@@ -32,10 +32,10 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  signup: async ({ email, password, displayName }) => {
+  signup: async ({ email, password, displayName, username }) => {
     set({ loading: true, error: null });
     try {
-      const { token, user } = await authApi.signup({ email, password, displayName });
+      const { token, user } = await authApi.signup({ email, password, displayName, username });
       await tokenStorage.save(token);
       set({ token, user, loading: false, error: null });
       return user;
@@ -48,10 +48,10 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
-  login: async ({ email, password }) => {
+  login: async ({ identifier, password }) => {
     set({ loading: true, error: null });
     try {
-      const { token, user } = await authApi.login({ email, password });
+      const { token, user } = await authApi.login({ identifier, password });
       await tokenStorage.save(token);
       set({ token, user, loading: false, error: null });
       return user;
@@ -60,6 +60,51 @@ export const useAuthStore = create((set, get) => ({
         loading: false,
         error: error.message || 'Unable to sign in',
       });
+      throw error;
+    }
+  },
+
+  loginWithGoogle: async ({ idToken }) => {
+    set({ loading: true, error: null });
+    try {
+      const { token, user } = await authApi.google({ idToken });
+      await tokenStorage.save(token);
+      set({ token, user, loading: false, error: null });
+      return user;
+    } catch (error) {
+      set({
+        loading: false,
+        error: error.message || 'Unable to sign in with Google',
+      });
+      throw error;
+    }
+  },
+
+  resetPassword: async ({ email, code, newPassword }) => {
+    set({ loading: true, error: null });
+    try {
+      const { token, user } = await authApi.resetPassword({ email, code, newPassword });
+      await tokenStorage.save(token);
+      set({ token, user, loading: false, error: null });
+      return user;
+    } catch (error) {
+      set({
+        loading: false,
+        error: error.message || 'Unable to reset password',
+      });
+      throw error;
+    }
+  },
+
+  updateProfile: async (profile) => {
+    const token = get().token;
+    set({ loading: true, error: null });
+    try {
+      const { user } = await profileApi.update(token, profile);
+      set({ user, loading: false, error: null });
+      return user;
+    } catch (error) {
+      set({ loading: false, error: error.message || 'Unable to update profile' });
       throw error;
     }
   },

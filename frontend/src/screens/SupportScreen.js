@@ -2,6 +2,7 @@ import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
+import { BackHeader } from '../components/BackHeader';
 import { useTheme } from '../theme';
 
 const HELPLINES = [
@@ -79,10 +80,8 @@ export function SupportScreen() {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text, marginBottom: 4 }]}>
-        Support
-      </Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 16 }]}>
+      <BackHeader title="Support" />
+      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: -8, marginBottom: 16 }]}>
         Reaching out is a strength, not a setback.
       </Text>
 

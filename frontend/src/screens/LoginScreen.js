@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '../components/Screen';
 import { TextField } from '../components/TextField';
 import { Button } from '../components/Button';
 import { BrandMark } from '../components/BrandMark';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { GoogleSignInButton } from '../components/GoogleSignInButton';
 import { useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
-import { validateEmail, validatePassword } from '../utils/validation';
+import { validateIdentifier, validatePassword } from '../utils/validation';
 
 export function LoginScreen({ navigation }) {
   const theme = useTheme();
@@ -16,73 +18,95 @@ export function LoginScreen({ navigation }) {
   const apiError = useAuthStore((state) => state.error);
   const clearError = useAuthStore((state) => state.clearError);
 
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
 
   const onSubmit = async () => {
     clearError();
     const nextErrors = {
-      email: validateEmail(email),
+      identifier: validateIdentifier(identifier),
       password: validatePassword(password),
     };
     setErrors(nextErrors);
 
-    if (nextErrors.email || nextErrors.password) {
+    if (nextErrors.identifier || nextErrors.password) {
       return;
     }
 
     try {
-      await login({ email: email.trim(), password });
+      await login({ identifier: identifier.trim(), password });
     } catch {
       // Error is already stored in authStore.
     }
   };
 
   return (
-    <Screen scroll>
-      <View style={styles.topRow}>
-        <BrandMark size={56} />
-        <ThemeToggle />
-      </View>
+    <Screen scroll contentStyle={styles.screen}>
+      <LinearGradient
+        colors={theme.colors.splashGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.hero}
+      >
+        <View style={styles.heroTop}>
+          <BrandMark size={48} />
+          <ThemeToggle compact />
+        </View>
+        <Text style={[theme.typography.display, styles.heroTitle]}>Welcome back</Text>
+        <Text style={[theme.typography.body, styles.heroSubtitle]}>
+          Pick up right where you left off. Your streak is waiting for you.
+        </Text>
+      </LinearGradient>
 
-      <Text style={[theme.typography.display, { color: theme.colors.text, marginTop: 28 }]}>
-        Welcome back
-      </Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-        Sign in to sync your account, buddy connections, and check-ins.
-      </Text>
-
-      <View style={styles.form}>
+      <View
+        style={[
+          styles.card,
+          theme.elevation.card,
+          { backgroundColor: theme.colors.surface, borderRadius: theme.radii.lg },
+        ]}
+      >
         <TextField
-          label="Email"
-          value={email}
-          onChangeText={setEmail}
-          placeholder="you@email.com"
+          label="Email or username"
+          icon="person-outline"
+          value={identifier}
+          onChangeText={setIdentifier}
+          placeholder="you@email.com or username"
           keyboardType="email-address"
-          autoComplete="email"
-          textContentType="emailAddress"
-          error={errors.email}
+          autoComplete="username"
+          textContentType="username"
+          error={errors.identifier}
         />
         <TextField
           label="Password"
+          icon="lock-closed-outline"
           value={password}
           onChangeText={setPassword}
-          placeholder="At least 6 characters"
+          placeholder="Your password"
           secureTextEntry
           autoComplete="password"
           textContentType="password"
           error={errors.password}
         />
 
+        <Pressable
+          onPress={() => {
+            clearError();
+            navigation.navigate('ForgotPassword');
+          }}
+          style={styles.forgotRow}
+          hitSlop={8}
+        >
+          <Text style={[theme.typography.caption, { color: theme.colors.primary, fontWeight: '700' }]}>
+            Forgot password?
+          </Text>
+        </Pressable>
+
         {apiError ? (
           <View
             style={[
               styles.errorBox,
-              {
-                backgroundColor: theme.colors.dangerMuted,
-                borderRadius: theme.radii.md,
-              },
+              { backgroundColor: theme.colors.dangerMuted, borderRadius: theme.radii.md },
             ]}
           >
             <Text style={[theme.typography.caption, { color: theme.colors.danger }]}>
@@ -91,10 +115,26 @@ export function LoginScreen({ navigation }) {
           </View>
         ) : null}
 
-        <Button label="Sign in" onPress={onSubmit} loading={loading} style={styles.submit} />
+        <Button label="Sign in" onPress={onSubmit} loading={loading} />
+
+        <View style={styles.dividerRow}>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+            or continue with
+          </Text>
+          <View style={[styles.dividerLine, { backgroundColor: theme.colors.border }]} />
+        </View>
+
+        <GoogleSignInButton />
       </View>
 
-      <Pressable onPress={() => navigation.navigate('Signup')} style={styles.switchRow}>
+      <Pressable
+        onPress={() => {
+          clearError();
+          navigation.navigate('Signup');
+        }}
+        style={styles.switchRow}
+      >
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
           New here?{' '}
           <Text style={{ color: theme.colors.primary, fontWeight: '700' }}>Create an account</Text>
@@ -105,23 +145,58 @@ export function LoginScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  topRow: {
+  screen: {
+    paddingHorizontal: 0,
+    paddingVertical: 0,
+  },
+  hero: {
+    paddingTop: 16,
+    paddingBottom: 64,
+    paddingHorizontal: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+  },
+  heroTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  form: {
-    marginTop: 28,
+  heroTitle: {
+    color: '#FFFFFF',
+    marginTop: 24,
+  },
+  heroSubtitle: {
+    color: 'rgba(255, 255, 255, 0.78)',
+    marginTop: 8,
+  },
+  card: {
+    marginTop: -36,
+    marginHorizontal: 20,
+    padding: 20,
+    paddingTop: 22,
+  },
+  forgotRow: {
+    alignSelf: 'flex-end',
+    marginTop: -4,
+    marginBottom: 14,
   },
   errorBox: {
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  submit: {
-    marginTop: 8,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginVertical: 16,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
   },
   switchRow: {
+    alignItems: 'center',
     marginTop: 24,
-    marginBottom: 12,
+    marginBottom: 24,
   },
 });

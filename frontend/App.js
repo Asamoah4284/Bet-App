@@ -12,7 +12,7 @@ import { useReminderStore } from './src/store/reminderStore';
 SplashScreen.preventAutoHideAsync().catch(() => {});
 SplashScreen.setOptions({ duration: 400, fade: true });
 
-const MIN_BRANDED_SPLASH_MS = 1200;
+const MIN_BRANDED_SPLASH_MS = 2800;
 
 export default function App() {
   const hydrateTheme = useThemeStore((state) => state.hydrate);

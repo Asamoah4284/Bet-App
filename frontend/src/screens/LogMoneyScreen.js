@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useFinanceStore } from '../store/financeStore';
 
@@ -35,10 +36,12 @@ export function LogMoneyScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>Log money</Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-        Both wins and slips count. Honesty keeps the picture real — no judgment either way.
-      </Text>
+      <ModalHeader
+        kicker="Money"
+        title="Log money"
+        subtitle="Both wins and slips count. Honesty keeps the picture real — no judgment either way."
+        accent="accent"
+      />
 
       <View style={styles.kindRow}>
         <Chip
@@ -52,6 +55,16 @@ export function LogMoneyScreen({ navigation }) {
       <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 20, marginBottom: 6 }]}>
         Amount
       </Text>
+      <View style={styles.quickAmounts}>
+        {[5, 10, 20, 50, 100].map((value) => (
+          <Chip
+            key={value}
+            label={`$${value}`}
+            selected={Number(amount) === value}
+            onPress={() => setAmount(String(value))}
+          />
+        ))}
+      </View>
       <TextInput
         value={amount}
         onChangeText={setAmount}
@@ -97,7 +110,6 @@ export function LogMoneyScreen({ navigation }) {
 
       <View style={styles.actions}>
         <Button label="Save" onPress={onSave} loading={saving} />
-        <Button label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </View>
     </Screen>
   );
@@ -107,7 +119,13 @@ const styles = StyleSheet.create({
   kindRow: {
     flexDirection: 'row',
     gap: 8,
-    marginTop: 24,
+    marginTop: 8,
+  },
+  quickAmounts: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginBottom: 10,
   },
   input: {
     minHeight: 50,

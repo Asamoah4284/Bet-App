@@ -9,6 +9,9 @@ jest.mock('../services/api', () => {
     authApi: {
       signup: jest.fn(),
       login: jest.fn(),
+      google: jest.fn(),
+      forgotPassword: jest.fn(),
+      resetPassword: jest.fn(),
       me: jest.fn(),
     },
   };
@@ -77,11 +80,53 @@ describe('authStore', () => {
       },
     });
 
-    await useAuthStore.getState().login({ email: 'b@test.com', password: 'secret1' });
+    await useAuthStore.getState().login({ identifier: 'b@test.com', password: 'secret1' });
 
     const state = useAuthStore.getState();
+    expect(authApi.login).toHaveBeenCalledWith({ identifier: 'b@test.com', password: 'secret1' });
     expect(tokenStorage.save).toHaveBeenCalledWith('fresh-token');
     expect(state.user.buddyCode).toBe('XYZ789');
     expect(state.loading).toBe(false);
+  });
+
+  it('stores token and user after Google sign-in', async () => {
+    authApi.google.mockResolvedValue({
+      token: 'google-token',
+      user: {
+        id: '3',
+        email: 'c@test.com',
+        displayName: 'Cara',
+        buddyCode: 'QRS456',
+      },
+    });
+
+    await useAuthStore.getState().loginWithGoogle({ idToken: 'google-id-token' });
+
+    const state = useAuthStore.getState();
+    expect(authApi.google).toHaveBeenCalledWith({ idToken: 'google-id-token' });
+    expect(tokenStorage.save).toHaveBeenCalledWith('google-token');
+    expect(state.user.displayName).toBe('Cara');
+  });
+
+  it('signs the user in after a successful password reset', async () => {
+    authApi.resetPassword.mockResolvedValue({
+      token: 'reset-token',
+      user: {
+        id: '4',
+        email: 'd@test.com',
+        displayName: 'Dan',
+        buddyCode: 'TUV789',
+      },
+    });
+
+    await useAuthStore.getState().resetPassword({
+      email: 'd@test.com',
+      code: '123456',
+      newPassword: 'newpass1',
+    });
+
+    const state = useAuthStore.getState();
+    expect(tokenStorage.save).toHaveBeenCalledWith('reset-token');
+    expect(state.user.displayName).toBe('Dan');
   });
 });

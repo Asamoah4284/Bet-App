@@ -9,6 +9,8 @@ export function TextField({
   onChangeText,
   placeholder,
   error,
+  hint,
+  icon,
   secureTextEntry = false,
   autoCapitalize = 'none',
   keyboardType = 'default',
@@ -17,6 +19,13 @@ export function TextField({
 }) {
   const theme = useTheme();
   const [hidden, setHidden] = useState(secureTextEntry);
+  const [focused, setFocused] = useState(false);
+
+  const borderColor = error
+    ? theme.colors.danger
+    : focused
+      ? theme.colors.primary
+      : theme.colors.border;
 
   return (
     <View style={styles.wrapper}>
@@ -28,11 +37,19 @@ export function TextField({
           styles.field,
           {
             backgroundColor: theme.colors.surface,
-            borderColor: error ? theme.colors.danger : theme.colors.border,
+            borderColor,
+            borderWidth: focused ? 1.5 : 1,
             borderRadius: theme.radii.md,
           },
         ]}
       >
+        {icon ? (
+          <Ionicons
+            name={icon}
+            size={20}
+            color={focused ? theme.colors.primary : theme.colors.textSecondary}
+          />
+        ) : null}
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -43,6 +60,8 @@ export function TextField({
           keyboardType={keyboardType}
           autoComplete={autoComplete}
           textContentType={textContentType}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
           style={[styles.input, theme.typography.body, { color: theme.colors.text }]}
         />
         {secureTextEntry ? (
@@ -64,6 +83,10 @@ export function TextField({
         <Text style={[theme.typography.caption, { color: theme.colors.danger, marginTop: 6 }]}>
           {error}
         </Text>
+      ) : hint ? (
+        <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 6 }]}>
+          {hint}
+        </Text>
       ) : null}
     </View>
   );
@@ -75,7 +98,6 @@ const styles = StyleSheet.create({
   },
   field: {
     minHeight: 52,
-    borderWidth: 1,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',

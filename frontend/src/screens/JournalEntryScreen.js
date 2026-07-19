@@ -3,6 +3,7 @@ import { StyleSheet, Text, TextInput, View } from 'react-native';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useHabitStore } from '../store/habitStore';
 
@@ -35,12 +36,13 @@ export function JournalEntryScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>Today's journal</Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-        A short honest note keeps you connected to your progress.
-      </Text>
+      <ModalHeader
+        kicker="Journal"
+        title="Today's journal"
+        subtitle="A short honest note keeps you connected to your progress."
+      />
 
-      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 28 }]}>
+      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 12 }]}>
         How are you feeling today?
       </Text>
       <View style={styles.chips}>
@@ -77,7 +79,6 @@ export function JournalEntryScreen({ navigation }) {
 
       <View style={styles.actions}>
         <Button label="Save entry" onPress={onSave} loading={saving} />
-        <Button label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </View>
     </Screen>
   );

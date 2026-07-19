@@ -4,6 +4,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
+import { BackHeader } from '../components/BackHeader';
 import { useTheme } from '../theme';
 import { useReminderStore } from '../store/reminderStore';
 import { formatTime } from '../services/notifications';
@@ -79,8 +80,8 @@ export function ReminderSettingsScreen() {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>Reminders</Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8, marginBottom: 20 }]}>
+      <BackHeader title="Reminders" />
+      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: -8, marginBottom: 20 }]}>
         Gentle nudges, never pressure. Set the times that support your routine.
       </Text>
 

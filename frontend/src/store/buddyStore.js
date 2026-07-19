@@ -10,8 +10,10 @@ export const useBuddyStore = create((set, get) => ({
   buddies: [],
   incomingRequests: [],
   outgoingRequests: [],
+  searchResults: [],
   myCheckins: [],
   loading: false,
+  searching: false,
   error: null,
 
   clearError: () => set({ error: null }),
@@ -40,8 +42,31 @@ export const useBuddyStore = create((set, get) => ({
     set({ error: null });
     const result = await buddiesApi.sendRequest(token(), buddyCode);
     await get().refresh();
+    set((state) => ({
+      searchResults: state.searchResults.map((user) =>
+        user.buddyCode === buddyCode ? { ...user, relationship: 'outgoing' } : user
+      ),
+    }));
     return result.message;
   },
+
+  searchUsers: async (query) => {
+    if (!query || query.trim().length < 2) {
+      set({ searchResults: [], searching: false });
+      return [];
+    }
+    set({ searching: true, error: null });
+    try {
+      const result = await buddiesApi.search(token(), query.trim());
+      set({ searchResults: result.results, searching: false });
+      return result.results;
+    } catch (error) {
+      set({ searchResults: [], searching: false, error: error.message });
+      throw error;
+    }
+  },
+
+  clearSearch: () => set({ searchResults: [], searching: false }),
 
   acceptRequest: async (linkId) => {
     set({ error: null });

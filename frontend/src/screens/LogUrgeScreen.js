@@ -4,6 +4,7 @@ import Slider from '@react-native-community/slider';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useHabitStore } from '../store/habitStore';
 
@@ -32,14 +33,14 @@ export function LogUrgeScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>
-        You noticed an urge
-      </Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-        That awareness is the hard part. Log it, breathe, and let it pass.
-      </Text>
+      <ModalHeader
+        kicker="Log urge"
+        title="You noticed an urge"
+        subtitle="That awareness is the hard part. Log it, breathe, and let it pass."
+        accent="secondary"
+      />
 
-      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 28 }]}>
+      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 12 }]}>
         How strong is it?
       </Text>
       <View style={styles.sliderRow}>
@@ -110,7 +111,6 @@ export function LogUrgeScreen({ navigation }) {
 
       <View style={styles.actions}>
         <Button label="Save urge log" onPress={onSave} loading={saving} />
-        <Button label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </View>
     </Screen>
   );

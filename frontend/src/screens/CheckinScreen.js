@@ -4,6 +4,7 @@ import Slider from '@react-native-community/slider';
 import { Screen } from '../components/Screen';
 import { Button } from '../components/Button';
 import { Chip } from '../components/Chip';
+import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useBuddyStore } from '../store/buddyStore';
 import { useHabitStore } from '../store/habitStore';
@@ -49,13 +50,13 @@ export function CheckinScreen({ navigation }) {
 
   return (
     <Screen scroll>
-      <Text style={[theme.typography.title, { color: theme.colors.text }]}>Daily check-in</Text>
-      <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-        Your buddies will see this. Your streak ({streakDays} days) and money kept ($
-        {Math.max(0, moneyKept).toFixed(0)}) are attached automatically.
-      </Text>
+      <ModalHeader
+        kicker="Buddies"
+        title="Daily check-in"
+        subtitle={`Your buddies will see this. Your streak (${streakDays} days) and money kept ($${Math.max(0, moneyKept).toFixed(0)}) are attached automatically.`}
+      />
 
-      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 28 }]}>
+      <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 12 }]}>
         How are you doing?
       </Text>
       <View style={styles.chips}>
@@ -113,7 +114,6 @@ export function CheckinScreen({ navigation }) {
 
       <View style={styles.actions}>
         <Button label="Post check-in" onPress={onSubmit} loading={saving} />
-        <Button label="Cancel" variant="ghost" onPress={() => navigation.goBack()} />
       </View>
     </Screen>
   );
