@@ -1,5 +1,5 @@
 import { NavigationContainer } from '@react-navigation/native';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
 import { createNavigationTheme, useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
@@ -26,8 +26,9 @@ import { BuddyInviteScreen } from '../screens/BuddyInviteScreen';
 import { PrivacyScreen } from '../screens/PrivacyScreen';
 import { SupportScreen } from '../screens/SupportScreen';
 import { DailyReflectionScreen } from '../screens/DailyReflectionScreen';
+import { createSlideModalOptions, createSlideScreenOptions } from './transitions';
 
-const Stack = createNativeStackNavigator();
+const Stack = createStackNavigator();
 const linking = {
   prefixes: ['betapp://'],
   config: {
@@ -38,8 +39,11 @@ const linking = {
 };
 
 function AuthStack() {
+  const theme = useTheme();
+  const screenOptions = createSlideScreenOptions(theme.colors.background);
+
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={screenOptions}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
@@ -52,6 +56,8 @@ export function RootNavigator({ bootstrapping }) {
   const navigationTheme = createNavigationTheme(theme);
   const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
   const user = useAuthStore((state) => state.user);
+  const screenOptions = createSlideScreenOptions(theme.colors.background);
+  const modalOptions = createSlideModalOptions(theme.colors.background);
 
   if (bootstrapping) {
     return (
@@ -65,7 +71,7 @@ export function RootNavigator({ bootstrapping }) {
   return (
     <NavigationContainer theme={navigationTheme} linking={linking}>
       <StatusBar style={theme.colors.statusBar} />
-      <Stack.Navigator screenOptions={{ headerShown: false, animation: 'fade' }}>
+      <Stack.Navigator screenOptions={screenOptions}>
         {!hasCompletedOnboarding ? (
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         ) : !user ? (
@@ -73,7 +79,7 @@ export function RootNavigator({ bootstrapping }) {
         ) : (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
-            <Stack.Group screenOptions={{ presentation: 'modal', animation: 'slide_from_bottom' }}>
+            <Stack.Group screenOptions={modalOptions}>
               <Stack.Screen name="UrgeSOS" component={UrgeSOSScreen} />
               <Stack.Screen name="LogUrge" component={LogUrgeScreen} />
               <Stack.Screen name="JournalEntry" component={JournalEntryScreen} />

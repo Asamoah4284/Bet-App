@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   },
   avatarInitial: {
     color: '#FFFFFF',
-    fontSize: 30,
+    fontSize: 24,
     fontWeight: '800',
   },
   identity: {
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   statValue: {
-    fontSize: 20,
+    fontSize: 17,
     lineHeight: 25,
     fontWeight: '800',
   },

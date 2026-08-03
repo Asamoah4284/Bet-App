@@ -1,34 +1,24 @@
-import { useContext, useEffect, useRef, useState } from 'react';
-import { Animated, Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useContext, useEffect, useState } from 'react';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
 
-const TAB_ICONS = {
-  Home: ['home', 'home-outline'],
-  Habits: ['leaf', 'leaf-outline'],
-  Money: ['wallet', 'wallet-outline'],
-  Buddies: ['people', 'people-outline'],
-  Profile: ['person', 'person-outline'],
+const TABS = {
+  Home: { label: 'Home', icon: 'home', iconOutline: 'home-outline' },
+  Habits: { label: 'Habits', icon: 'calendar', iconOutline: 'calendar-outline' },
+  Money: { label: 'Money', icon: 'wallet', iconOutline: 'wallet-outline' },
+  Buddies: { label: 'Buddies', icon: 'people', iconOutline: 'people-outline' },
+  Profile: { label: 'Profile', icon: 'person', iconOutline: 'person-outline' },
 };
 
-function TabItem({ label, icons, focused, onPress, onLongPress }) {
-  const theme = useTheme();
-  const anim = useRef(new Animated.Value(focused ? 1 : 0)).current;
+const FAB_SIZE = 56;
+/** How far the Money circle sits above the tab row. */
+const FAB_LIFT = 26;
 
-  useEffect(() => {
-    Animated.spring(anim, {
-      toValue: focused ? 1 : 0,
-      friction: 6,
-      tension: 90,
-      useNativeDriver: true,
-    }).start();
-  }, [focused, anim]);
-
-  const bubbleScale = anim.interpolate({ inputRange: [0, 1], outputRange: [0.4, 1] });
-  const iconLift = anim.interpolate({ inputRange: [0, 1], outputRange: [0, -2] });
+function SideTab({ label, icon, iconOutline, focused, onPress, onLongPress, colors }) {
+  const color = focused ? colors.primary : colors.textMuted;
 
   return (
     <Pressable
@@ -37,38 +27,48 @@ function TabItem({ label, icons, focused, onPress, onLongPress }) {
       accessibilityLabel={label}
       onPress={onPress}
       onLongPress={onLongPress}
-      style={styles.tab}
+      style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.7 : 1 }]}
     >
-      <Animated.View style={[styles.iconWrap, { transform: [{ translateY: iconLift }] }]}>
-        <Animated.View
-          style={[
-            StyleSheet.absoluteFill,
-            { opacity: anim, transform: [{ scale: bubbleScale }] },
-          ]}
-        >
-          <LinearGradient
-            colors={theme.colors.gradient}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.bubble}
-          />
-        </Animated.View>
-        <Ionicons
-          name={focused ? icons[0] : icons[1]}
-          size={20}
-          color={focused ? '#FFFFFF' : theme.colors.textSecondary}
-        />
-      </Animated.View>
+      <View style={[styles.sideIconWrap, focused && { backgroundColor: colors.primaryMuted }]}>
+        <Ionicons name={focused ? icon : iconOutline} size={22} color={color} />
+      </View>
+      <Text style={[styles.label, { color, fontWeight: focused ? '700' : '500' }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function MoneyTab({ focused, onPress, onLongPress, colors }) {
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={focused ? { selected: true } : {}}
+      accessibilityLabel="Money"
+      onPress={onPress}
+      onLongPress={onLongPress}
+      style={({ pressed }) => [styles.moneyTab, { opacity: pressed ? 0.88 : 1 }]}
+    >
+      <View
+        style={[
+          styles.fab,
+          {
+            backgroundColor: focused ? colors.secondary : colors.primary,
+            marginTop: -FAB_LIFT,
+          },
+        ]}
+      >
+        <Ionicons name="wallet" size={24} color="#FFFFFF" />
+      </View>
       <Text
         style={[
           styles.label,
           {
-            color: focused ? theme.colors.primary : theme.colors.textSecondary,
+            color: focused ? colors.primary : colors.textMuted,
             fontWeight: focused ? '700' : '500',
+            marginTop: 4,
           },
         ]}
       >
-        {label}
+        Money
       </Text>
     </Pressable>
   );
@@ -79,6 +79,7 @@ export function TabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
   const [keyboardShown, setKeyboardShown] = useState(false);
+  const bottomPad = Math.max(insets.bottom, 8);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -95,49 +96,73 @@ export function TabBar({ state, descriptors, navigation }) {
     return null;
   }
 
+  const goTo = (route, index) => {
+    const event = navigation.emit({
+      type: 'tabPress',
+      target: route.key,
+      canPreventDefault: true,
+    });
+    if (state.index !== index && !event.defaultPrevented) {
+      navigation.navigate(route.name);
+    }
+  };
+
   return (
     <View
       pointerEvents="box-none"
       onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
-      style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 12) }]}
+      style={styles.wrap}
     >
+      {/* Extra top space so the raised Money button isn’t clipped */}
+      <View style={{ height: FAB_LIFT }} pointerEvents="none" />
+
       <View
         style={[
           styles.bar,
-          theme.elevation.card,
-          { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+          {
+            paddingBottom: bottomPad,
+            backgroundColor: 'transparent',
+          },
         ]}
       >
-        {state.routes.map((route, index) => {
-          const { options } = descriptors[route.key];
-          const focused = state.index === index;
+        <View style={styles.row}>
+          {state.routes.map((route, index) => {
+            const focused = state.index === index;
+            const config = TABS[route.name] || {
+              label: descriptors[route.key]?.options?.title || route.name,
+              icon: 'ellipse',
+              iconOutline: 'ellipse-outline',
+            };
+            const onPress = () => goTo(route, index);
+            const onLongPress = () =>
+              navigation.emit({ type: 'tabLongPress', target: route.key });
 
-          const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true,
-            });
-            if (!focused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
+            if (route.name === 'Money') {
+              return (
+                <MoneyTab
+                  key={route.key}
+                  focused={focused}
+                  colors={theme.colors}
+                  onPress={onPress}
+                  onLongPress={onLongPress}
+                />
+              );
             }
-          };
 
-          const onLongPress = () => {
-            navigation.emit({ type: 'tabLongPress', target: route.key });
-          };
-
-          return (
-            <TabItem
-              key={route.key}
-              label={options.title ?? route.name}
-              icons={TAB_ICONS[route.name] ?? ['ellipse', 'ellipse-outline']}
-              focused={focused}
-              onPress={onPress}
-              onLongPress={onLongPress}
-            />
-          );
-        })}
+            return (
+              <SideTab
+                key={route.key}
+                label={config.label}
+                icon={config.icon}
+                iconOutline={config.iconOutline}
+                focused={focused}
+                colors={theme.colors}
+                onPress={onPress}
+                onLongPress={onLongPress}
+              />
+            );
+          })}
+        </View>
       </View>
     </View>
   );
@@ -145,37 +170,46 @@ export function TabBar({ state, descriptors, navigation }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: 14,
     backgroundColor: 'transparent',
   },
-  bar: {
+  bar: {},
+  row: {
     flexDirection: 'row',
-    borderRadius: 28,
-    borderWidth: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 6,
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    paddingHorizontal: 4,
+    minHeight: 56,
   },
   tab: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'flex-end',
     gap: 3,
+    paddingBottom: 2,
   },
-  iconWrap: {
-    width: 46,
-    height: 32,
+  sideIconWrap: {
+    width: 42,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubble: {
-    flex: 1,
-    borderRadius: 16,
-  },
   label: {
     fontSize: 10,
-    lineHeight: 13,
+    letterSpacing: 0.1,
+  },
+  moneyTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingBottom: 2,
+  },
+  fab: {
+    width: FAB_SIZE,
+    height: FAB_SIZE,
+    borderRadius: FAB_SIZE / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

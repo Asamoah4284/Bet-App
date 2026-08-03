@@ -138,7 +138,7 @@ export function AchievementsScreen() {
         style={[styles.hero, { borderRadius: theme.radii.lg }]}
       >
         <View style={styles.heroBadge}>
-          <Ionicons name="trophy" size={26} color="#FFD59E" />
+          <Ionicons name="trophy" size={26} color={theme.colors.successMuted} />
         </View>
         <View style={styles.heroBody}>
           <Text style={[theme.typography.title, styles.white]}>

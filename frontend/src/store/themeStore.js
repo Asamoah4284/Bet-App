@@ -2,21 +2,35 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 
 const THEME_KEY = 'betapp.themePreference';
+const CANVAS_MIGRATION_KEY = 'betapp.themeCanvas.v2';
 
 export const useThemeStore = create((set, get) => ({
-  preference: 'system',
+  // Default to light so main screens use #F5F7FA (system dark was applying navy canvases).
+  preference: 'light',
   hydrated: false,
 
   hydrate: async () => {
     try {
+      // One-time: exit legacy system/dark navy canvases onto the light design system.
+      const migrated = await AsyncStorage.getItem(CANVAS_MIGRATION_KEY);
+      if (!migrated) {
+        await AsyncStorage.multiSet([
+          [THEME_KEY, 'light'],
+          [CANVAS_MIGRATION_KEY, '1'],
+        ]);
+        set({ preference: 'light', hydrated: true });
+        return;
+      }
+
       const saved = await AsyncStorage.getItem(THEME_KEY);
-      if (saved === 'light' || saved === 'dark' || saved === 'system') {
+      if (saved === 'light' || saved === 'dark') {
         set({ preference: saved, hydrated: true });
         return;
       }
-      set({ hydrated: true });
+      // Treat leftover "system" as light so OS dark mode cannot override the canvas.
+      set({ preference: 'light', hydrated: true });
     } catch {
-      set({ hydrated: true });
+      set({ preference: 'light', hydrated: true });
     }
   },
 
@@ -30,9 +44,10 @@ export const useThemeStore = create((set, get) => ({
   },
 
   cyclePreference: async () => {
-    const order = ['system', 'light', 'dark'];
+    const order = ['light', 'dark'];
     const current = get().preference;
-    const next = order[(order.indexOf(current) + 1) % order.length];
+    const index = order.indexOf(current);
+    const next = order[(index === -1 ? 0 : index + 1) % order.length];
     await get().setPreference(next);
     return next;
   },

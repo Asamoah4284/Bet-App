@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   initial: {
-    fontSize: 38,
+    fontSize: 30,
     fontWeight: '800',
   },
   bio: {

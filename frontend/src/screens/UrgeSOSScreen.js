@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     marginVertical: 8,
   },
   timer: {
-    fontSize: 48,
+    fontSize: 38,
     fontWeight: '800',
     lineHeight: 54,
   },

@@ -9,7 +9,8 @@ export function createNavigationTheme(theme) {
       ...base.colors,
       primary: theme.colors.primary,
       background: theme.colors.background,
-      card: theme.colors.surface,
+      // Match canvas so push/pop never flashes a flat white card behind content.
+      card: theme.colors.background,
       text: theme.colors.text,
       border: theme.colors.border,
       notification: theme.colors.accent,

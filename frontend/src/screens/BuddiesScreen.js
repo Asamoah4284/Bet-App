@@ -3,32 +3,49 @@ import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { useBuddyStore } from '../store/buddyStore';
 
+function Panel({ children, style }) {
+  const theme = useTheme();
+  return (
+    <View
+      style={[
+        styles.panel,
+        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+
+function SectionLabel({ children, right }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>{children}</Text>
+      {right || null}
+    </View>
+  );
+}
+
 function Identity({ person }) {
   const theme = useTheme();
   return (
     <View style={styles.identity}>
-      <View
-        style={[
-          styles.avatar,
-          { backgroundColor: theme.colors.primaryMuted, borderRadius: theme.radii.pill },
-        ]}
-      >
-        <Text style={[theme.typography.subtitle, { color: theme.colors.primary }]}>
-          {(person.displayName || '?')[0].toUpperCase()}
-        </Text>
+      <View style={[styles.avatar, { backgroundColor: theme.colors.primary }]}>
+        <Text style={styles.avatarText}>{(person.displayName || '?')[0].toUpperCase()}</Text>
       </View>
       <View style={styles.identityText}>
-        <Text style={[theme.typography.body, { color: theme.colors.text, fontWeight: '700' }]}>
+        <Text style={[styles.identityName, { color: theme.colors.text }]}>
           {person.displayName}
         </Text>
         {person.username ? (
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
+          <Text style={[styles.identityMeta, { color: theme.colors.textSecondary }]}>
             @{person.username}
           </Text>
         ) : null}
@@ -49,20 +66,19 @@ function CompactAction({ label, icon, variant = 'primary', disabled, loading, on
         styles.compactAction,
         {
           backgroundColor: primary ? theme.colors.primary : theme.colors.surfaceMuted,
-          borderColor: primary ? theme.colors.primary : theme.colors.border,
           opacity: disabled ? 0.55 : pressed ? 0.75 : 1,
         },
       ]}
     >
       <Ionicons
         name={loading ? 'ellipsis-horizontal' : icon}
-        size={15}
-        color={primary ? theme.colors.textInverse : theme.colors.text}
+        size={14}
+        color={primary ? '#FFFFFF' : theme.colors.text}
       />
       <Text
         style={[
-          theme.typography.caption,
-          { color: primary ? theme.colors.textInverse : theme.colors.text, fontWeight: '700' },
+          styles.compactActionText,
+          { color: primary ? '#FFFFFF' : theme.colors.text },
         ]}
       >
         {label}
@@ -152,275 +168,337 @@ export function BuddiesScreen({ navigation }) {
   };
 
   return (
-    <Screen scroll>
-      <View style={styles.header}>
-        <View>
-          <Text style={[theme.typography.title, { color: theme.colors.text }]}>Buddies</Text>
-          <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 4 }]}>
-            Recovery is stronger with someone in your corner.
+    <Screen scroll contentStyle={styles.screen}>
+      <View style={styles.topBar}>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.brand, { color: theme.colors.primary }]}>Buddies</Text>
+          <Text style={[styles.headline, { color: theme.colors.text }]}>Your corner</Text>
+          <Text style={[styles.subhead, { color: theme.colors.textSecondary }]}>
+            Recovery is stronger with someone beside you.
           </Text>
         </View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Buddy privacy settings"
           onPress={() => navigation.navigate('Privacy')}
-          style={[
-            styles.headerButton,
-            { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border },
-          ]}
+          style={styles.topIcon}
+          hitSlop={8}
         >
-          <Ionicons name="shield-checkmark-outline" size={21} color={theme.colors.primary} />
+          <Ionicons name="shield-checkmark-outline" size={22} color={theme.colors.text} />
         </Pressable>
       </View>
 
-      {incomingRequests.length > 0 ? (
-        <View
-          style={[
-            styles.inbox,
-            { backgroundColor: theme.colors.primaryMuted, borderRadius: theme.radii.lg },
-          ]}
+      {/* Buddy code hero */}
+      <View style={[styles.hero, { backgroundColor: theme.colors.primary }]}>
+        <View style={styles.heroLeft}>
+          <Text style={styles.heroEyebrow}>Your buddy code</Text>
+          <Text style={styles.heroCode}>{user?.buddyCode || '—'}</Text>
+          <Text style={styles.heroHint}>Share it with someone you trust</Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Share buddy code"
+          onPress={shareCode}
+          style={({ pressed }) => [styles.heroShare, { opacity: pressed ? 0.85 : 1 }]}
         >
-          <View style={styles.inboxTitle}>
-            <View>
-              <Text style={[theme.typography.caption, { color: theme.colors.primary, fontWeight: '800' }]}>
-                REQUEST INBOX
-              </Text>
-              <Text style={[theme.typography.subtitle, { color: theme.colors.text, marginTop: 2 }]}>
-                {incomingRequests.length} waiting for you
-              </Text>
-            </View>
-            <View style={[styles.count, { backgroundColor: theme.colors.primary }]}>
-              <Text style={[theme.typography.caption, { color: theme.colors.textInverse, fontWeight: '800' }]}>
-                {incomingRequests.length}
-              </Text>
-            </View>
-          </View>
-          {incomingRequests.map((request) => (
-            <View
-              key={request.linkId}
-              style={[styles.personRow, { borderTopColor: theme.colors.border }]}
-            >
-              <Identity person={request} />
-              <View style={styles.rowActions}>
-                <CompactAction
-                  label="Accept"
-                  icon="checkmark"
-                  loading={busyKey === `accept-${request.linkId}`}
-                  onPress={() =>
-                    run(
-                      `accept-${request.linkId}`,
-                      () => acceptRequest(request.linkId),
-                      `${request.displayName} is now your buddy.`
-                    )
-                  }
-                />
-                <CompactAction
-                  label="Decline"
-                  icon="close"
-                  variant="muted"
-                  loading={busyKey === `decline-${request.linkId}`}
-                  onPress={() =>
-                    run(
-                      `decline-${request.linkId}`,
-                      () => removeLink(request.linkId),
-                      'Request declined.'
-                    )
-                  }
-                />
+          <Ionicons name="share-social-outline" size={18} color="#FFFFFF" />
+          <Text style={styles.heroShareText}>Share</Text>
+        </Pressable>
+      </View>
+
+      {/* Incoming requests */}
+      {incomingRequests.length > 0 ? (
+        <View style={styles.block}>
+          <SectionLabel
+            right={
+              <View style={[styles.countBadge, { backgroundColor: theme.colors.secondary }]}>
+                <Text style={styles.countBadgeText}>{incomingRequests.length}</Text>
               </View>
-            </View>
-          ))}
+            }
+          >
+            Requests for you
+          </SectionLabel>
+          <Panel style={{ paddingVertical: 4, paddingHorizontal: 0 }}>
+            {incomingRequests.map((request, index, list) => (
+              <View
+                key={request.linkId}
+                style={[
+                  styles.personRow,
+                  index < list.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <Identity person={request} />
+                <View style={styles.rowActions}>
+                  <CompactAction
+                    label="Accept"
+                    icon="checkmark"
+                    loading={busyKey === `accept-${request.linkId}`}
+                    onPress={() =>
+                      run(
+                        `accept-${request.linkId}`,
+                        () => acceptRequest(request.linkId),
+                        `${request.displayName} is now your buddy.`
+                      )
+                    }
+                  />
+                  <CompactAction
+                    label="Decline"
+                    icon="close"
+                    variant="muted"
+                    loading={busyKey === `decline-${request.linkId}`}
+                    onPress={() =>
+                      run(
+                        `decline-${request.linkId}`,
+                        () => removeLink(request.linkId),
+                        'Request declined.'
+                      )
+                    }
+                  />
+                </View>
+              </View>
+            ))}
+          </Panel>
         </View>
       ) : null}
 
-      <Card title="Find people">
-        <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-          Search by display name or @username. Only people who opt in appear.
-        </Text>
-        <View style={styles.searchRow}>
+      {/* Find people */}
+      <View style={styles.block}>
+        <SectionLabel>Find people</SectionLabel>
+        <Panel>
           <View
             style={[
               styles.searchInputWrap,
-              {
-                backgroundColor: theme.colors.surfaceMuted,
-                borderColor: theme.colors.border,
-                borderRadius: theme.radii.md,
-              },
+              { backgroundColor: theme.colors.surfaceMuted, borderColor: theme.colors.border },
             ]}
           >
-            <Ionicons name="search-outline" size={19} color={theme.colors.textSecondary} />
+            <Ionicons name="search-outline" size={17} color={theme.colors.textSecondary} />
             <TextInput
               value={query}
               onChangeText={onQueryChange}
               onSubmitEditing={onSearch}
-              placeholder="Name or username"
-              placeholderTextColor={theme.colors.textSecondary}
+              placeholder="Name or @username"
+              placeholderTextColor={theme.colors.textMuted}
               autoCapitalize="none"
               returnKeyType="search"
-              style={[styles.searchInput, theme.typography.body, { color: theme.colors.text }]}
+              style={[styles.searchInput, { color: theme.colors.text }]}
             />
-          </View>
-          <CompactAction
-            label="Search"
-            icon="search"
-            loading={searching}
-            onPress={onSearch}
-          />
-        </View>
-
-        {searched && !searching && searchResults.length === 0 ? (
-          <View style={styles.emptySearch}>
-            <Ionicons name="person-add-outline" size={25} color={theme.colors.textSecondary} />
-            <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-              No discoverable people matched that search.
-            </Text>
-          </View>
-        ) : null}
-
-        {searchResults.map((person) => (
-          <View
-            key={person.id}
-            style={[styles.personRow, { borderTopColor: theme.colors.border }]}
-          >
-            <View style={styles.searchIdentity}>
-              <Identity person={person} />
-              {person.bio ? (
-                <Text
-                  numberOfLines={1}
-                  style={[theme.typography.caption, styles.bio, { color: theme.colors.textSecondary }]}
-                >
-                  {person.bio}
-                </Text>
-              ) : null}
-            </View>
-            {person.relationship === 'none' ? (
-              <CompactAction
-                label="Add"
-                icon="person-add-outline"
-                loading={busyKey === `add-${person.id}`}
-                onPress={() =>
-                  run(
-                    `add-${person.id}`,
-                    () => sendRequest(person.buddyCode),
-                    `Request sent to ${person.displayName}.`
-                  )
-                }
-              />
-            ) : person.relationship === 'incoming' ? (
-              <CompactAction
-                label="Accept"
-                icon="checkmark"
-                loading={busyKey === `accept-search-${person.id}`}
-                onPress={() =>
-                  run(
-                    `accept-search-${person.id}`,
-                    () => acceptRequest(person.linkId),
-                    `${person.displayName} is now your buddy.`
-                  )
-                }
-              />
-            ) : (
-              <CompactAction
-                label={person.relationship === 'buddy' ? 'Buddies' : 'Sent'}
-                icon={person.relationship === 'buddy' ? 'checkmark-circle-outline' : 'time-outline'}
-                variant="muted"
-                disabled
-              />
-            )}
-          </View>
-        ))}
-      </Card>
-
-      <Card title="Or use a buddy code">
-        <View style={styles.searchRow}>
-          <TextInput
-            value={code}
-            onChangeText={setCode}
-            placeholder="Enter code"
-            placeholderTextColor={theme.colors.textSecondary}
-            autoCapitalize="characters"
-            style={[
-              styles.codeInput,
-              theme.typography.body,
-              {
-                backgroundColor: theme.colors.surfaceMuted,
-                borderColor: theme.colors.border,
-                borderRadius: theme.radii.md,
-                color: theme.colors.text,
-              },
-            ]}
-          />
-          <CompactAction
-            label="Send"
-            icon="send-outline"
-            loading={busyKey === 'code'}
-            onPress={requestByCode}
-          />
-        </View>
-        <Pressable onPress={shareCode} style={styles.shareRow}>
-          <View>
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-              YOUR CODE
-            </Text>
-            <Text style={[theme.typography.subtitle, { color: theme.colors.primary, letterSpacing: 2 }]}>
-              {user?.buddyCode || '—'}
-            </Text>
-          </View>
-          <Ionicons name="share-social-outline" size={22} color={theme.colors.primary} />
-        </Pressable>
-      </Card>
-
-      {outgoingRequests.length > 0 ? (
-        <Card title={`Sent requests (${outgoingRequests.length})`}>
-          {outgoingRequests.map((request) => (
-            <View key={request.linkId} style={styles.personRow}>
-              <Identity person={request} />
-              <CompactAction
-                label="Cancel"
-                icon="close"
-                variant="muted"
-                loading={busyKey === `cancel-${request.linkId}`}
-                onPress={() =>
-                  run(
-                    `cancel-${request.linkId}`,
-                    () => removeLink(request.linkId),
-                    'Request canceled.'
-                  )
-                }
-              />
-            </View>
-          ))}
-        </Card>
-      ) : null}
-
-      <Card title={`Your buddies (${buddies.length})`}>
-        {buddies.length === 0 ? (
-          <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-            No buddies yet. Search above or share your code with someone you trust.
-          </Text>
-        ) : (
-          buddies.map((buddy) => (
             <Pressable
-              key={buddy.linkId}
               accessibilityRole="button"
-              onPress={() =>
-                navigation.navigate('BuddyDetail', {
-                  userId: buddy.id,
-                  displayName: buddy.displayName,
-                  linkId: buddy.linkId,
-                })
-              }
+              accessibilityLabel="Search"
+              onPress={onSearch}
+              disabled={searching}
               style={({ pressed }) => [
-                styles.buddyRow,
-                { borderBottomColor: theme.colors.border, opacity: pressed ? 0.7 : 1 },
+                styles.searchGo,
+                { backgroundColor: theme.colors.primary, opacity: pressed || searching ? 0.8 : 1 },
               ]}
             >
-              <Identity person={buddy} />
-              <Ionicons name="chevron-forward" size={18} color={theme.colors.textSecondary} />
+              <Ionicons
+                name={searching ? 'ellipsis-horizontal' : 'arrow-forward'}
+                size={16}
+                color="#FFFFFF"
+              />
             </Pressable>
-          ))
-        )}
-      </Card>
+          </View>
+          <Text style={[styles.searchHint, { color: theme.colors.textSecondary }]}>
+            Only people who opt in to discovery appear in results.
+          </Text>
+
+          {searched && !searching && searchResults.length === 0 ? (
+            <View style={styles.emptySearch}>
+              <Ionicons name="person-add-outline" size={22} color={theme.colors.textMuted} />
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                No discoverable people matched that search.
+              </Text>
+            </View>
+          ) : null}
+
+          {searchResults.map((person) => (
+            <View
+              key={person.id}
+              style={[
+                styles.personRow,
+                styles.searchResultRow,
+                { borderTopColor: theme.colors.border },
+              ]}
+            >
+              <View style={{ flex: 1 }}>
+                <Identity person={person} />
+                {person.bio ? (
+                  <Text
+                    numberOfLines={1}
+                    style={[styles.bio, { color: theme.colors.textSecondary }]}
+                  >
+                    {person.bio}
+                  </Text>
+                ) : null}
+              </View>
+              {person.relationship === 'none' ? (
+                <CompactAction
+                  label="Add"
+                  icon="person-add-outline"
+                  loading={busyKey === `add-${person.id}`}
+                  onPress={() =>
+                    run(
+                      `add-${person.id}`,
+                      () => sendRequest(person.buddyCode),
+                      `Request sent to ${person.displayName}.`
+                    )
+                  }
+                />
+              ) : person.relationship === 'incoming' ? (
+                <CompactAction
+                  label="Accept"
+                  icon="checkmark"
+                  loading={busyKey === `accept-search-${person.id}`}
+                  onPress={() =>
+                    run(
+                      `accept-search-${person.id}`,
+                      () => acceptRequest(person.linkId),
+                      `${person.displayName} is now your buddy.`
+                    )
+                  }
+                />
+              ) : (
+                <CompactAction
+                  label={person.relationship === 'buddy' ? 'Buddies' : 'Sent'}
+                  icon={
+                    person.relationship === 'buddy' ? 'checkmark-circle-outline' : 'time-outline'
+                  }
+                  variant="muted"
+                  disabled
+                />
+              )}
+            </View>
+          ))}
+        </Panel>
+      </View>
+
+      {/* Buddy code entry */}
+      <View style={styles.block}>
+        <SectionLabel>Have a code?</SectionLabel>
+        <Panel>
+          <View style={styles.codeRow}>
+            <TextInput
+              value={code}
+              onChangeText={setCode}
+              placeholder="Enter buddy code"
+              placeholderTextColor={theme.colors.textMuted}
+              autoCapitalize="characters"
+              style={[
+                styles.codeInput,
+                {
+                  backgroundColor: theme.colors.surfaceMuted,
+                  borderColor: theme.colors.border,
+                  color: theme.colors.text,
+                },
+              ]}
+            />
+            <CompactAction
+              label="Send"
+              icon="send-outline"
+              loading={busyKey === 'code'}
+              onPress={requestByCode}
+            />
+          </View>
+        </Panel>
+      </View>
+
+      {/* Sent requests */}
+      {outgoingRequests.length > 0 ? (
+        <View style={styles.block}>
+          <SectionLabel
+            right={
+              <Text style={[styles.countPill, { color: theme.colors.textSecondary }]}>
+                {outgoingRequests.length}
+              </Text>
+            }
+          >
+            Sent requests
+          </SectionLabel>
+          <Panel style={{ paddingVertical: 4, paddingHorizontal: 0 }}>
+            {outgoingRequests.map((request, index, list) => (
+              <View
+                key={request.linkId}
+                style={[
+                  styles.personRow,
+                  index < list.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <Identity person={request} />
+                <CompactAction
+                  label="Cancel"
+                  icon="close"
+                  variant="muted"
+                  loading={busyKey === `cancel-${request.linkId}`}
+                  onPress={() =>
+                    run(
+                      `cancel-${request.linkId}`,
+                      () => removeLink(request.linkId),
+                      'Request canceled.'
+                    )
+                  }
+                />
+              </View>
+            ))}
+          </Panel>
+        </View>
+      ) : null}
+
+      {/* Buddies list */}
+      <View style={styles.block}>
+        <SectionLabel
+          right={
+            <Text style={[styles.countPill, { color: theme.colors.textSecondary }]}>
+              {buddies.length}
+            </Text>
+          }
+        >
+          Your buddies
+        </SectionLabel>
+        <Panel style={{ paddingVertical: 4, paddingHorizontal: 0 }}>
+          {buddies.length === 0 ? (
+            <View style={styles.emptyBuddies}>
+              <View style={[styles.emptyIcon, { backgroundColor: theme.colors.primaryMuted }]}>
+                <Ionicons name="people-outline" size={22} color={theme.colors.primary} />
+              </View>
+              <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+                No buddies yet. Search above or share your code with someone you trust.
+              </Text>
+            </View>
+          ) : (
+            buddies.map((buddy, index, list) => (
+              <Pressable
+                key={buddy.linkId}
+                accessibilityRole="button"
+                onPress={() =>
+                  navigation.navigate('BuddyDetail', {
+                    userId: buddy.id,
+                    displayName: buddy.displayName,
+                    linkId: buddy.linkId,
+                  })
+                }
+                style={({ pressed }) => [
+                  styles.personRow,
+                  index < list.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: theme.colors.border,
+                  },
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <Identity person={buddy} />
+                <Ionicons name="chevron-forward" size={17} color={theme.colors.textMuted} />
+              </Pressable>
+            ))
+          )}
+        </Panel>
+      </View>
 
       <Button
         label="Post today's check-in"
@@ -432,7 +510,6 @@ export function BuddiesScreen({ navigation }) {
       {message || error ? (
         <Text
           style={[
-            theme.typography.caption,
             styles.message,
             { color: error ? theme.colors.danger : theme.colors.textSecondary },
           ]}
@@ -445,38 +522,123 @@ export function BuddiesScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  header: {
+  screen: {
+    paddingTop: 6,
+    paddingBottom: 36,
+  },
+  topBar: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    gap: 16,
+    gap: 12,
     marginBottom: 18,
   },
-  headerButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    borderWidth: 1,
+  brand: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  headline: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
+    letterSpacing: -0.35,
+  },
+  subhead: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  topIcon: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 4,
   },
-  inbox: {
-    padding: 16,
-    marginBottom: 16,
-  },
-  inboxTitle: {
+  hero: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    justifyContent: 'space-between',
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 22,
   },
-  count: {
-    minWidth: 28,
-    height: 28,
-    paddingHorizontal: 8,
-    borderRadius: 14,
+  heroLeft: {
+    flex: 1,
+  },
+  heroEyebrow: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
+  heroCode: {
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '700',
+    letterSpacing: 3,
+    marginTop: 6,
+  },
+  heroHint: {
+    color: 'rgba(255,255,255,0.6)',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 4,
+  },
+  heroShare: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+  },
+  heroShareText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  block: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sectionLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  countBadge: {
+    minWidth: 22,
+    height: 22,
+    paddingHorizontal: 7,
+    borderRadius: 11,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  countBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  countPill: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  panel: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    padding: 16,
   },
   identity: {
     flexDirection: 'row',
@@ -487,88 +649,137 @@ const styles = StyleSheet.create({
   identityText: {
     flex: 1,
   },
+  identityName: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  identityMeta: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
   avatar: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  avatarText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
   },
   personRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  searchResultRow: {
     borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 0,
+    marginTop: 4,
   },
   rowActions: {
     flexDirection: 'row',
     gap: 6,
   },
   compactAction: {
-    minHeight: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    paddingHorizontal: 11,
+    minHeight: 32,
+    borderRadius: 16,
+    paddingHorizontal: 12,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 5,
   },
-  searchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
+  compactActionText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   searchInputWrap: {
-    minHeight: 48,
+    minHeight: 46,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    flex: 1,
+    borderRadius: 12,
+    paddingLeft: 12,
+    paddingRight: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   searchInput: {
     flex: 1,
-    minHeight: 46,
+    minHeight: 44,
     paddingVertical: 0,
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  searchGo: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchHint: {
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 8,
   },
   emptySearch: {
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 22,
+    paddingVertical: 18,
   },
-  searchIdentity: {
-    flex: 1,
+  emptyBuddies: {
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 20,
+    paddingHorizontal: 24,
+  },
+  emptyIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   bio: {
-    marginLeft: 48,
-    marginTop: -2,
+    fontSize: 11,
+    fontWeight: '500',
+    marginLeft: 46,
+    marginTop: 2,
+  },
+  codeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   codeInput: {
     flex: 1,
-    minHeight: 48,
+    minHeight: 46,
     borderWidth: 1,
+    borderRadius: 12,
     paddingHorizontal: 14,
-  },
-  shareRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 16,
-  },
-  buddyRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 1,
   },
   checkinButton: {
-    marginBottom: 12,
+    marginTop: 4,
+    marginBottom: 10,
   },
   message: {
+    fontSize: 12,
+    fontWeight: '500',
     textAlign: 'center',
     marginBottom: 12,
   },

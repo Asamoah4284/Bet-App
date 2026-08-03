@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarInitial: {
-    fontSize: 42,
+    fontSize: 34,
     fontWeight: '800',
   },
   cameraBadge: {

@@ -4,13 +4,11 @@ import { useTheme } from '../theme';
 import { useThemeStore } from '../store/themeStore';
 
 const LABELS = {
-  system: 'System',
   light: 'Light',
   dark: 'Dark',
 };
 
 const ICONS = {
-  system: 'phone-portrait-outline',
   light: 'sunny-outline',
   dark: 'moon-outline',
 };

@@ -30,11 +30,11 @@ app.get('/buddy/:buddyCode', async (req, res, next) => {
     const code = user.buddy_code;
     res.send(`<!doctype html><html><head><meta name="viewport" content="width=device-width">
       <title>Add ${safeName} on Betapp</title><style>
-      body{font-family:system-ui;background:#F5F7FB;color:#1A1F36;display:grid;place-items:center;
+      body{font-family:system-ui;background:#F5F7FA;color:#2B2D42;display:grid;place-items:center;
       min-height:100vh;margin:0}.card{background:white;border-radius:24px;padding:32px;max-width:360px;
-      box-shadow:0 12px 40px #1B215022;text-align:center}a{display:block;background:#2F3A8F;color:white;
+      box-shadow:0 12px 40px #2B2D4214;text-align:center}a{display:block;background:#1E3A5F;color:white;
       padding:14px;border-radius:14px;text-decoration:none;font-weight:700;margin-top:20px}
-      .code{letter-spacing:4px;font-size:26px;font-weight:800;color:#2F3A8F}</style></head>
+      .code{letter-spacing:4px;font-size:26px;font-weight:800;color:#1E3A5F}</style></head>
       <body><main class="card"><h1>${safeName}</h1><p>wants to connect as an accountability buddy on Betapp.</p>
       <p class="code">${code}</p><a href="betapp://buddy/${code}">Open in Betapp</a>
       <p>If the app does not open, enter the code above in the Buddies tab.</p></main></body></html>`);

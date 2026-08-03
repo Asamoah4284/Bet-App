@@ -1,10 +1,8 @@
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '../components/Screen';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { useTheme } from '../theme';
 import { useFinanceStore } from '../store/financeStore';
@@ -12,7 +10,7 @@ import { useFinanceStore } from '../store/financeStore';
 const EQUIVALENTS = [
   { unit: 'coffees', price: 5, icon: 'cafe-outline' },
   { unit: 'movie nights', price: 12, icon: 'film-outline' },
-  { unit: 'weeks of groceries', price: 100, icon: 'cart-outline' },
+  { unit: 'grocery weeks', price: 100, icon: 'cart-outline' },
 ];
 
 function localDayKey(date) {
@@ -60,6 +58,31 @@ function formatLogDate(sqliteUtc) {
   });
 }
 
+function Panel({ children, style }) {
+  const theme = useTheme();
+  return (
+    <View
+      style={[
+        styles.panel,
+        { backgroundColor: theme.colors.surface, borderColor: theme.colors.border },
+        style,
+      ]}
+    >
+      {children}
+    </View>
+  );
+}
+
+function SectionLabel({ children, right }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.sectionHeader}>
+      <Text style={[styles.sectionLabel, { color: theme.colors.text }]}>{children}</Text>
+      {right || null}
+    </View>
+  );
+}
+
 export function FinanceScreen({ navigation }) {
   const theme = useTheme();
   const summary = useFinanceStore((state) => state.summary);
@@ -99,399 +122,620 @@ export function FinanceScreen({ navigation }) {
   };
 
   return (
-    <Screen scroll>
-      <View style={styles.header}>
-        <View>
-          <Text style={[theme.typography.title, { color: theme.colors.text }]}>Money</Text>
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
-            Every dollar kept is a win
-          </Text>
+    <Screen scroll contentStyle={styles.screen}>
+      <View style={styles.topBar}>
+        <Text style={[styles.brand, { color: theme.colors.primary }]}>Money</Text>
+        <Text style={[styles.headline, { color: theme.colors.text }]}>What you’ve kept</Text>
+        <Text style={[styles.subhead, { color: theme.colors.textSecondary }]}>
+          Track the dollars that stayed with you.
+        </Text>
+      </View>
+
+      {/* Hero balance */}
+      <View style={[styles.hero, { backgroundColor: theme.colors.primary }]}>
+        <View style={styles.heroTop}>
+          <Text style={styles.heroEyebrow}>Money kept</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Log money"
+            onPress={() => navigation.navigate('LogMoney')}
+            style={({ pressed }) => [styles.heroAction, { opacity: pressed ? 0.85 : 1 }]}
+          >
+            <Ionicons name="add" size={18} color="#FFFFFF" />
+            <Text style={styles.heroActionText}>Log</Text>
+          </Pressable>
+        </View>
+
+        <Text style={styles.heroAmount}>${summary.moneyKept.toFixed(2)}</Text>
+
+        <View style={styles.heroSplit}>
+          <View style={styles.heroMetric}>
+            <View style={[styles.heroMetricDot, { backgroundColor: theme.colors.secondary }]} />
+            <View>
+              <Text style={styles.heroMetricValue}>${summary.savedTotal.toFixed(0)}</Text>
+              <Text style={styles.heroMetricLabel}>Set aside</Text>
+            </View>
+          </View>
+          <View style={styles.heroMetricDivider} />
+          <View style={styles.heroMetric}>
+            <View style={[styles.heroMetricDot, { backgroundColor: theme.colors.warning }]} />
+            <View>
+              <Text style={styles.heroMetricValue}>${summary.slipTotal.toFixed(0)}</Text>
+              <Text style={styles.heroMetricLabel}>Slipped</Text>
+            </View>
+          </View>
         </View>
       </View>
 
-      <LinearGradient
-        colors={theme.colors.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[styles.heroCard, { borderRadius: theme.radii.lg }]}
-      >
-        <Text style={[theme.typography.caption, styles.heroLabel]}>MONEY KEPT</Text>
-        <Text style={styles.heroAmount}>${summary.moneyKept.toFixed(2)}</Text>
-        <View style={styles.heroChips}>
-          <View style={styles.heroChip}>
-            <Ionicons name="arrow-up-circle" size={15} color="#B8F1DE" />
-            <Text style={[theme.typography.caption, styles.heroChipText]}>
-              ${summary.savedTotal.toFixed(0)} set aside
-            </Text>
-          </View>
-          <View style={styles.heroChip}>
-            <Ionicons name="arrow-down-circle" size={15} color="#FFC2B0" />
-            <Text style={[theme.typography.caption, styles.heroChipText]}>
-              ${summary.slipTotal.toFixed(0)} slipped
-            </Text>
-          </View>
-        </View>
-        <Button
-          label="Log money"
-          icon="add-circle-outline"
-          variant="secondary"
-          onPress={() => navigation.navigate('LogMoney')}
-          style={styles.heroButton}
-        />
-      </LinearGradient>
-
-      {equivalents.length > 0 ? (
-        <Card title="That's roughly...">
-          <View style={styles.equivalentsRow}>
-            {equivalents.map((item) => (
-              <View key={item.unit} style={styles.equivalentItem}>
-                <View
-                  style={[
-                    styles.equivalentIcon,
-                    { backgroundColor: theme.colors.secondaryMuted, borderRadius: theme.radii.sm },
-                  ]}
-                >
-                  <Ionicons name={item.icon} size={20} color={theme.colors.secondary} />
-                </View>
-                <Text style={[styles.equivalentCount, { color: theme.colors.text }]}>
-                  {item.count}
-                </Text>
-                <Text
-                  style={[theme.typography.caption, { color: theme.colors.textSecondary, textAlign: 'center' }]}
-                >
-                  {item.unit}
-                </Text>
-              </View>
-            ))}
-          </View>
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 12 }]}>
-            Money you kept instead of gambling - made tangible.
-          </Text>
-        </Card>
-      ) : null}
-
-      <View style={styles.statsRow}>
-        <View
-          style={[
-            styles.statCard,
-            theme.elevation.card,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              borderRadius: theme.radii.lg,
-            },
-          ]}
-        >
-          <Ionicons name="trending-up-outline" size={18} color={theme.colors.secondary} />
-          <Text style={[styles.statValue, { color: theme.colors.secondary }]}>
+      {/* Month snapshot */}
+      <View style={[styles.monthStrip, { borderColor: theme.colors.border, backgroundColor: theme.colors.surface }]}>
+        <View style={styles.monthCell}>
+          <Text style={[styles.monthValue, { color: theme.colors.secondary }]}>
             ${month.saved.toFixed(0)}
           </Text>
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            saved this month
+          <Text style={[styles.monthLabel, { color: theme.colors.textSecondary }]}>
+            Saved this month
           </Text>
         </View>
-        <View
-          style={[
-            styles.statCard,
-            theme.elevation.card,
-            {
-              backgroundColor: theme.colors.surface,
-              borderColor: theme.colors.border,
-              borderRadius: theme.radii.lg,
-            },
-          ]}
-        >
-          <Ionicons name="trending-down-outline" size={18} color={theme.colors.accent} />
-          <Text style={[styles.statValue, { color: theme.colors.accent }]}>
+        <View style={[styles.monthDivider, { backgroundColor: theme.colors.border }]} />
+        <View style={styles.monthCell}>
+          <Text style={[styles.monthValue, { color: theme.colors.danger }]}>
             ${month.slipped.toFixed(0)}
           </Text>
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            slipped this month
+          <Text style={[styles.monthLabel, { color: theme.colors.textSecondary }]}>
+            Slipped this month
           </Text>
         </View>
       </View>
 
-      <Card title="Savings goal">
-        {savingsGoal && !editingGoal ? (
-          <View>
-            <View style={styles.goalHeader}>
-              <Text style={[theme.typography.subtitle, { color: theme.colors.text }]}>
-                ${summary.moneyKept.toFixed(0)} of ${savingsGoal.toFixed(0)}
-              </Text>
-              <Text style={[theme.typography.subtitle, { color: theme.colors.secondary }]}>
-                {Math.round(goalProgress * 100)}%
-              </Text>
-            </View>
-            <View
-              style={[
-                styles.progressTrack,
-                { backgroundColor: theme.colors.surfaceMuted, borderRadius: theme.radii.pill },
-              ]}
-            >
-              <View
-                style={[
-                  styles.progressFill,
-                  {
-                    backgroundColor: theme.colors.secondary,
-                    borderRadius: theme.radii.pill,
-                    width: `${goalProgress * 100}%`,
-                  },
-                ]}
-              />
-            </View>
-            <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 8 }]}>
-              {goalProgress >= 1
-                ? 'Goal reached! Set a new one and keep going.'
-                : `$${(savingsGoal - summary.moneyKept).toFixed(0)} to go`}
-            </Text>
-            <Button
-              label="Change goal"
-              variant="ghost"
-              onPress={() => setEditingGoal(true)}
-              style={styles.cardButton}
-            />
-          </View>
-        ) : (
-          <View>
-            <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginBottom: 10 }]}>
-              What are you saving toward?
-            </Text>
-            <TextInput
-              value={goalDraft}
-              onChangeText={setGoalDraft}
-              placeholder="Goal amount, e.g. 500"
-              placeholderTextColor={theme.colors.textSecondary}
-              keyboardType="numeric"
-              style={[
-                styles.goalInput,
-                theme.typography.body,
-                {
-                  backgroundColor: theme.colors.surface,
-                  borderColor: theme.colors.border,
-                  borderRadius: theme.radii.md,
-                  color: theme.colors.text,
-                },
-              ]}
-            />
-            <Button label="Set goal" onPress={saveGoal} style={styles.cardButton} />
-            {editingGoal ? (
-              <Button label="Cancel" variant="ghost" onPress={() => setEditingGoal(false)} />
-            ) : null}
-          </View>
-        )}
-      </Card>
-
-      <Card title="Last 7 days">
-        <View style={styles.weekHeader}>
-          <Text style={[theme.typography.body, { color: theme.colors.text }]}>Net saved</Text>
-          <Text
-            style={[
-              theme.typography.subtitle,
-              { color: weekTotal >= 0 ? theme.colors.secondary : theme.colors.danger },
-            ]}
-          >
-            {weekTotal >= 0 ? '+' : '-'}${Math.abs(weekTotal).toFixed(0)}
+      {/* Quick log tiles */}
+      <View style={styles.actionRow}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('LogMoney')}
+          style={({ pressed }) => [
+            styles.actionTile,
+            {
+              backgroundColor: theme.colors.secondary,
+              opacity: pressed ? 0.9 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="arrow-up-circle-outline" size={22} color="#FFFFFF" />
+          <Text style={styles.actionTitle}>Set aside</Text>
+          <Text style={styles.actionMeta}>Money you didn’t gamble</Text>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => navigation.navigate('LogMoney')}
+          style={({ pressed }) => [
+            styles.actionTile,
+            {
+              backgroundColor: theme.colors.surface,
+              borderColor: theme.colors.border,
+              borderWidth: 1,
+              opacity: pressed ? 0.85 : 1,
+            },
+          ]}
+        >
+          <Ionicons name="arrow-down-circle-outline" size={22} color={theme.colors.danger} />
+          <Text style={[styles.actionTitle, { color: theme.colors.text }]}>Log a slip</Text>
+          <Text style={[styles.actionMeta, { color: theme.colors.textSecondary }]}>
+            Honesty keeps you on track
           </Text>
-        </View>
-        <View style={styles.chart}>
-          {bars.map((bar) => (
-            <View key={bar.key} style={styles.chartColumn}>
-              <View style={styles.chartBarArea}>
+        </Pressable>
+      </View>
+
+      {/* Savings goal */}
+      <View style={styles.block}>
+        <SectionLabel
+          right={
+            savingsGoal && !editingGoal ? (
+              <Pressable onPress={() => setEditingGoal(true)} hitSlop={8}>
+                <Text style={[styles.link, { color: theme.colors.primary }]}>Edit</Text>
+              </Pressable>
+            ) : null
+          }
+        >
+          Savings goal
+        </SectionLabel>
+        <Panel>
+          {savingsGoal && !editingGoal ? (
+            <View>
+              <View style={styles.goalHeader}>
+                <Text style={[styles.goalAmount, { color: theme.colors.text }]}>
+                  ${summary.moneyKept.toFixed(0)}
+                  <Text style={{ color: theme.colors.textSecondary, fontWeight: '500' }}>
+                    {' '}
+                    of ${savingsGoal.toFixed(0)}
+                  </Text>
+                </Text>
+                <View style={[styles.goalPctChip, { backgroundColor: theme.colors.secondaryMuted }]}>
+                  <Text style={[styles.goalPct, { color: theme.colors.secondary }]}>
+                    {Math.round(goalProgress * 100)}%
+                  </Text>
+                </View>
+              </View>
+              <View style={[styles.progressTrack, { backgroundColor: theme.colors.surfaceMuted }]}>
                 <View
                   style={[
-                    styles.chartBar,
+                    styles.progressFill,
                     {
-                      height: `${Math.max(4, (Math.abs(bar.net) / maxBar) * 100)}%`,
-                      backgroundColor:
-                        bar.net > 0
-                          ? theme.colors.secondary
-                          : bar.net < 0
-                            ? theme.colors.danger
-                            : theme.colors.surfaceMuted,
-                      borderRadius: theme.radii.sm,
+                      backgroundColor: theme.colors.secondary,
+                      width: `${goalProgress * 100}%`,
                     },
                   ]}
                 />
               </View>
-              <Text
-                style={[
-                  theme.typography.caption,
-                  {
-                    color: bar.isToday ? theme.colors.primary : theme.colors.textSecondary,
-                    fontWeight: bar.isToday ? '700' : '500',
-                  },
-                ]}
-              >
-                {bar.label}
+              <Text style={[styles.goalFoot, { color: theme.colors.textSecondary }]}>
+                {goalProgress >= 1
+                  ? 'Goal reached. Set a new one and keep going.'
+                  : `$${(savingsGoal - summary.moneyKept).toFixed(0)} left to go`}
               </Text>
             </View>
-          ))}
-        </View>
-      </Card>
-
-      <Card title="Recent activity">
-        {logs.length === 0 ? (
-          <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-            Nothing logged yet. Money you would have gambled but kept? That counts.
-          </Text>
-        ) : (
-          logs.slice(0, 8).map((log) => (
-            <View key={log.id} style={[styles.logRow, { borderBottomColor: theme.colors.border }]}>
-              <View
+          ) : (
+            <View>
+              <Text style={[styles.goalPrompt, { color: theme.colors.textSecondary }]}>
+                What are you saving toward?
+              </Text>
+              <TextInput
+                value={goalDraft}
+                onChangeText={setGoalDraft}
+                placeholder="e.g. 500"
+                placeholderTextColor={theme.colors.textMuted}
+                keyboardType="numeric"
                 style={[
-                  styles.logIcon,
+                  styles.goalInput,
                   {
-                    backgroundColor:
-                      log.kind === 'saved' ? theme.colors.secondaryMuted : theme.colors.dangerMuted,
-                    borderRadius: theme.radii.pill,
+                    backgroundColor: theme.colors.surfaceMuted,
+                    borderColor: theme.colors.border,
+                    color: theme.colors.text,
+                  },
+                ]}
+              />
+              <View style={styles.goalActions}>
+                <Button label="Set goal" onPress={saveGoal} style={{ flex: 1 }} />
+                {editingGoal ? (
+                  <Button
+                    label="Cancel"
+                    variant="ghost"
+                    onPress={() => setEditingGoal(false)}
+                    style={{ flex: 1 }}
+                  />
+                ) : null}
+              </View>
+            </View>
+          )}
+        </Panel>
+      </View>
+
+      {/* Week chart */}
+      <View style={styles.block}>
+        <SectionLabel
+          right={
+            <Text
+              style={[
+                styles.weekTotal,
+                { color: weekTotal >= 0 ? theme.colors.secondary : theme.colors.danger },
+              ]}
+            >
+              {weekTotal >= 0 ? '+' : '-'}${Math.abs(weekTotal).toFixed(0)}
+            </Text>
+          }
+        >
+          Last 7 days
+        </SectionLabel>
+        <Panel>
+          <Text style={[styles.chartCaption, { color: theme.colors.textSecondary }]}>
+            Net kept each day
+          </Text>
+          <View style={styles.chart}>
+            {bars.map((bar) => {
+              const heightPct = Math.max(6, (Math.abs(bar.net) / maxBar) * 100);
+              const color =
+                bar.net > 0
+                  ? theme.colors.secondary
+                  : bar.net < 0
+                    ? theme.colors.warning
+                    : theme.colors.border;
+              return (
+                <View key={bar.key} style={styles.chartColumn}>
+                  <View style={styles.chartBarArea}>
+                    <View
+                      style={[
+                        styles.chartBar,
+                        {
+                          height: `${heightPct}%`,
+                          backgroundColor: color,
+                          opacity: bar.isToday ? 1 : 0.85,
+                        },
+                      ]}
+                    />
+                  </View>
+                  <Text
+                    style={[
+                      styles.chartLabel,
+                      {
+                        color: bar.isToday ? theme.colors.primary : theme.colors.textSecondary,
+                        fontWeight: bar.isToday ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {bar.label}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </Panel>
+      </View>
+
+      {/* Equivalents */}
+      {equivalents.length > 0 ? (
+        <View style={styles.block}>
+          <SectionLabel>In real terms</SectionLabel>
+          <Panel style={styles.equivalentsPanel}>
+            {equivalents.map((item, index) => (
+              <View
+                key={item.unit}
+                style={[
+                  styles.equivalentItem,
+                  index < equivalents.length - 1 && {
+                    borderRightWidth: StyleSheet.hairlineWidth,
+                    borderRightColor: theme.colors.border,
                   },
                 ]}
               >
-                <Ionicons
-                  name={log.kind === 'saved' ? 'arrow-up' : 'arrow-down'}
-                  size={16}
-                  color={log.kind === 'saved' ? theme.colors.secondary : theme.colors.danger}
-                />
-              </View>
-              <View style={styles.logBody}>
-                <Text style={[theme.typography.body, { color: theme.colors.text }]}>
-                  {log.kind === 'saved' ? 'Set aside' : 'Slipped'}
+                <View style={[styles.equivalentIcon, { backgroundColor: theme.colors.secondaryMuted }]}>
+                  <Ionicons name={item.icon} size={18} color={theme.colors.secondary} />
+                </View>
+                <Text style={[styles.equivalentCount, { color: theme.colors.text }]}>
+                  {item.count}
                 </Text>
-                {log.note ? (
-                  <Text
-                    style={[theme.typography.caption, { color: theme.colors.textSecondary }]}
-                    numberOfLines={1}
-                  >
-                    {log.note}
-                  </Text>
-                ) : null}
+                <Text style={[styles.equivalentUnit, { color: theme.colors.textSecondary }]}>
+                  {item.unit}
+                </Text>
               </View>
-              <View style={styles.logRight}>
-                <Text
+            ))}
+          </Panel>
+        </View>
+      ) : null}
+
+      {/* Activity */}
+      <View style={styles.block}>
+        <SectionLabel
+          right={
+            <Text style={[styles.countPill, { color: theme.colors.textSecondary }]}>
+              {logs.length}
+            </Text>
+          }
+        >
+          Recent activity
+        </SectionLabel>
+        <Panel style={{ paddingVertical: 4, paddingHorizontal: 0 }}>
+          {logs.length === 0 ? (
+            <Text style={[styles.emptyText, { color: theme.colors.textSecondary }]}>
+              Nothing logged yet. Money you would have gambled but kept still counts.
+            </Text>
+          ) : (
+            logs.slice(0, 8).map((log, index, list) => (
+              <View
+                key={log.id}
+                style={[
+                  styles.logRow,
+                  index < list.length - 1 && {
+                    borderBottomWidth: StyleSheet.hairlineWidth,
+                    borderBottomColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <View
                   style={[
-                    theme.typography.subtitle,
-                    { color: log.kind === 'saved' ? theme.colors.secondary : theme.colors.danger },
+                    styles.logIcon,
+                    {
+                      backgroundColor:
+                        log.kind === 'saved'
+                          ? theme.colors.secondaryMuted
+                          : theme.colors.warningMuted,
+                    },
                   ]}
                 >
-                  {log.kind === 'saved' ? '+' : '-'}${log.amount.toFixed(2)}
-                </Text>
-                <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-                  {formatLogDate(log.created_at)}
-                </Text>
+                  <Ionicons
+                    name={log.kind === 'saved' ? 'arrow-up' : 'arrow-down'}
+                    size={15}
+                    color={log.kind === 'saved' ? theme.colors.secondary : theme.colors.danger}
+                  />
+                </View>
+                <View style={styles.logBody}>
+                  <Text style={[styles.logTitle, { color: theme.colors.text }]}>
+                    {log.kind === 'saved' ? 'Set aside' : 'Slipped'}
+                  </Text>
+                  {log.note ? (
+                    <Text
+                      style={[styles.logMeta, { color: theme.colors.textSecondary }]}
+                      numberOfLines={1}
+                    >
+                      {log.note}
+                    </Text>
+                  ) : (
+                    <Text style={[styles.logMeta, { color: theme.colors.textSecondary }]}>
+                      {formatLogDate(log.created_at)}
+                    </Text>
+                  )}
+                </View>
+                <View style={styles.logRight}>
+                  <Text
+                    style={[
+                      styles.logAmount,
+                      {
+                        color:
+                          log.kind === 'saved' ? theme.colors.secondary : theme.colors.danger,
+                      },
+                    ]}
+                  >
+                    {log.kind === 'saved' ? '+' : '-'}${log.amount.toFixed(2)}
+                  </Text>
+                  {log.note ? (
+                    <Text style={[styles.logMeta, { color: theme.colors.textSecondary }]}>
+                      {formatLogDate(log.created_at)}
+                    </Text>
+                  ) : null}
+                </View>
               </View>
-            </View>
-          ))
-        )}
-      </Card>
+            ))
+          )}
+        </Panel>
+      </View>
+
+      <Button
+        label="Log money"
+        icon="wallet-outline"
+        onPress={() => navigation.navigate('LogMoney')}
+        style={styles.bottomCta}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
+  screen: {
+    paddingTop: 6,
+    paddingBottom: 36,
+  },
+  topBar: {
+    marginBottom: 18,
+  },
+  brand: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    marginBottom: 4,
+  },
+  headline: {
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: '700',
+    letterSpacing: -0.35,
+  },
+  subhead: {
+    marginTop: 4,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  hero: {
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 12,
+  },
+  heroTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
+    marginBottom: 8,
   },
-  heroCard: {
-    padding: 22,
-    marginBottom: 16,
+  heroEyebrow: {
+    color: 'rgba(255,255,255,0.7)',
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
   },
-  heroLabel: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    letterSpacing: 1.2,
+  heroAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  heroActionText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '700',
   },
   heroAmount: {
-    fontSize: 44,
-    fontWeight: '800',
-    lineHeight: 52,
+    fontSize: 40,
+    lineHeight: 46,
+    fontWeight: '700',
     color: '#FFFFFF',
-    marginTop: 6,
-  },
-  heroChips: {
-    flexDirection: 'row',
-    gap: 10,
-    marginTop: 10,
-  },
-  heroChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.16)',
-    borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-  },
-  heroChipText: {
-    color: '#FFFFFF',
-  },
-  heroButton: {
-    marginTop: 16,
-  },
-  equivalentsRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    gap: 8,
-  },
-  equivalentItem: {
-    alignItems: 'center',
-    gap: 4,
-    flex: 1,
-  },
-  equivalentIcon: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  equivalentCount: {
-    fontSize: 22,
-    fontWeight: '800',
-    lineHeight: 28,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    gap: 12,
+    letterSpacing: -1.2,
     marginBottom: 16,
   },
-  statCard: {
-    flex: 1,
-    padding: 16,
-    borderWidth: 1,
-    gap: 4,
+  heroSplit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    borderRadius: 14,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
   },
-  statValue: {
-    fontSize: 22,
-    fontWeight: '800',
-    lineHeight: 28,
+  heroMetric: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  heroMetricDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  heroMetricDivider: {
+    width: StyleSheet.hairlineWidth,
+    alignSelf: 'stretch',
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    marginHorizontal: 8,
+  },
+  heroMetricValue: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  heroMetricLabel: {
+    color: 'rgba(255,255,255,0.65)',
+    fontSize: 11,
+    fontWeight: '500',
+    marginTop: 1,
+  },
+  monthStrip: {
+    flexDirection: 'row',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    paddingVertical: 14,
+    marginBottom: 14,
+  },
+  monthCell: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  monthDivider: {
+    width: StyleSheet.hairlineWidth,
+  },
+  monthValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+  },
+  monthLabel: {
+    marginTop: 2,
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 22,
+  },
+  actionTile: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 14,
+    gap: 4,
+    minHeight: 100,
+    justifyContent: 'flex-end',
+  },
+  actionTitle: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '700',
+    marginTop: 10,
+  },
+  actionMeta: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  block: {
+    marginBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  sectionLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  link: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  countPill: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  weekTotal: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  panel: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 16,
+    padding: 16,
   },
   goalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
   },
-  cardButton: {
-    marginTop: 14,
+  goalAmount: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  goalPctChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  goalPct: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   progressTrack: {
-    height: 12,
-    marginTop: 12,
+    height: 6,
+    borderRadius: 3,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
+    borderRadius: 3,
+  },
+  goalFoot: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  goalPrompt: {
+    fontSize: 13,
+    fontWeight: '500',
+    marginBottom: 10,
   },
   goalInput: {
-    minHeight: 50,
+    minHeight: 46,
     borderWidth: 1,
+    borderRadius: 12,
     paddingHorizontal: 14,
-  },
-  weekHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    fontSize: 15,
+    fontWeight: '600',
     marginBottom: 12,
+  },
+  goalActions: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  chartCaption: {
+    fontSize: 11,
+    fontWeight: '600',
+    marginBottom: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   chart: {
     flexDirection: 'row',
@@ -501,28 +745,60 @@ const styles = StyleSheet.create({
   chartColumn: {
     flex: 1,
     alignItems: 'center',
-    gap: 4,
+    gap: 6,
   },
   chartBarArea: {
-    height: 90,
+    height: 88,
     width: '100%',
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
   chartBar: {
-    width: 18,
+    width: 14,
     minHeight: 4,
+    borderRadius: 7,
+  },
+  chartLabel: {
+    fontSize: 11,
+  },
+  equivalentsPanel: {
+    flexDirection: 'row',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  equivalentItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 6,
+  },
+  equivalentIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  equivalentCount: {
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  equivalentUnit: {
+    fontSize: 11,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   logRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   logIcon: {
     width: 34,
     height: 34,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -530,8 +806,31 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
+  logTitle: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  logMeta: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
   logRight: {
     alignItems: 'flex-end',
     gap: 2,
+  },
+  logAmount: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  emptyText: {
+    fontSize: 13,
+    lineHeight: 19,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontWeight: '500',
+  },
+  bottomCta: {
+    marginTop: 4,
+    marginBottom: 8,
   },
 });

@@ -16,7 +16,8 @@ export function Button({
 
   const backgrounds = {
     primary: theme.colors.primary,
-    secondary: theme.colors.secondary,
+    // Soft teal fill + dark label keeps WCAG AA contrast (white-on-teal does not).
+    secondary: theme.colors.secondaryMuted,
     ghost: 'transparent',
     soft: theme.colors.primaryMuted,
     outline: theme.colors.surface,
@@ -24,7 +25,7 @@ export function Button({
 
   const labels = {
     primary: theme.colors.textInverse,
-    secondary: theme.colors.textInverse,
+    secondary: theme.colors.primary,
     ghost: theme.colors.primary,
     soft: theme.colors.primary,
     outline: theme.colors.text,
@@ -63,10 +64,10 @@ export function Button({
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 52,
+    minHeight: 46,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: 16,
   },
   content: {
     flexDirection: 'row',
