@@ -13,9 +13,11 @@
       "backgroundColor": "#1E3A5F"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.betapp.recovery"
     },
     "android": {
+      "package": "com.betapp.recovery",
       "adaptiveIcon": {
         "backgroundColor": "#1E3A5F",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -48,7 +50,13 @@
         }
       ],
       "expo-font",
-      "@react-native-google-signin/google-signin"
-    ]
+      "@react-native-google-signin/google-signin",
+      "./modules/betapp-shield/app.plugin.js"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b6bfcc34-bced-4bbf-a42e-9da79deff37d"
+      }
+    }
   }
 }

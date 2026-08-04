@@ -50,6 +50,12 @@ function getDb() {
           status TEXT NOT NULL CHECK (status IN ('clean', 'slipped')),
           confirmed_at TEXT NOT NULL DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS custom_block_domains (
+          domain TEXT PRIMARY KEY,
+          label TEXT,
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        );
       `);
 
       return db;
@@ -257,3 +263,46 @@ export async function setSetting(key, value) {
     String(value)
   );
 }
+
+// --- Shield custom domains (local-only additions) ---
+
+function normalizeDomain(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\//, '')
+    .replace(/\/.*$/, '')
+    .replace(/^www\./, '');
+}
+
+export async function listCustomBlockDomains() {
+  const db = await getDb();
+  return db.getAllAsync(
+    'SELECT domain, label, created_at FROM custom_block_domains ORDER BY created_at DESC'
+  );
+}
+
+export async function addCustomBlockDomain(domain, label) {
+  const normalized = normalizeDomain(domain);
+  if (!normalized || !normalized.includes('.')) {
+    throw new Error('Enter a valid domain like sportybet.com');
+  }
+
+  const db = await getDb();
+  await db.runAsync(
+    `INSERT INTO custom_block_domains (domain, label)
+     VALUES (?, ?)
+     ON CONFLICT(domain) DO UPDATE SET label = excluded.label`,
+    normalized,
+    label?.trim() || normalized
+  );
+  return normalized;
+}
+
+export async function removeCustomBlockDomain(domain) {
+  const db = await getDb();
+  await db.runAsync('DELETE FROM custom_block_domains WHERE domain = ?', normalizeDomain(domain));
+}
+
+export { normalizeDomain };
+

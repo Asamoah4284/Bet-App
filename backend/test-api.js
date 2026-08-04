@@ -168,6 +168,15 @@ async function main() {
     }
     console.log('PROFILE, SHARE LINK & LEADERBOARD ok');
 
+    const shield = await get('/api/shield/targets', a.token);
+    if (!Array.isArray(shield.targets) || shield.targets.length < 1 || !shield.domains?.length) {
+      throw new Error('shield targets failed: ' + JSON.stringify(shield));
+    }
+    if (!shield.targets.every((t) => t.kind && t.value && t.label)) {
+      throw new Error('shield target shape invalid: ' + JSON.stringify(shield.targets[0]));
+    }
+    console.log('SHIELD BLOCKLIST ok,', shield.domains.length, 'domains');
+
     const reqResult = await post('/api/buddies/request', { buddyCode: b.user.buddyCode }, a.token);
     console.log('REQUEST:', reqResult.message || JSON.stringify(reqResult));
 

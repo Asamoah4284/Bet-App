@@ -28,6 +28,11 @@ const ITEMS = [
     title: 'Shared buddy profile',
     text: 'Your invitation link reveals your display name, username, bio and buddy code so another person can request to connect.',
   },
+  {
+    icon: 'shield-outline',
+    title: 'Shield website blocking',
+    text: 'When you enable Shield, a local DNS VPN on this phone blocks betting domains. The blocklist syncs from the server, but browsing traffic is filtered on-device and is never uploaded.',
+  },
 ];
 
 export function PrivacyScreen() {

@@ -240,6 +240,14 @@ export function ProfileScreen({ navigation }) {
           onPress={() => navigation.navigate('Leaderboard')}
         />
         <MenuRow
+          icon="shield-outline"
+          color={theme.colors.primary}
+          muted={theme.colors.primaryMuted}
+          title="Shield"
+          detail="Block betting websites on this phone"
+          onPress={() => navigation.navigate('Shield')}
+        />
+        <MenuRow
           icon="shield-checkmark-outline"
           color={theme.colors.primary}
           muted={theme.colors.primaryMuted}

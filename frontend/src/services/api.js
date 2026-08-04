@@ -151,3 +151,7 @@ export const profileApi = {
   leaderboard: (token, scope = 'global') =>
     apiRequest(`/api/profile/leaderboard?scope=${encodeURIComponent(scope)}`, { token }),
 };
+
+export const shieldApi = {
+  targets: (token) => apiRequest('/api/shield/targets', { token }),
+};

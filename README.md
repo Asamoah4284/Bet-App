@@ -78,6 +78,25 @@ The button is wired end to end (`/api/auth/google` verifies the ID token and cre
 
 In Expo Go the button shows a friendly "needs a development build" notice instead.
 
+**Shield (betting website blocking)**
+
+Shield blocks known gambling **websites** with a local DNS VPN on Android. It does **not** force-close or uninstall native betting apps.
+
+1. Redeploy the backend so `GET /api/shield/targets` is available (seeds Ghana-focused domains on first boot).
+2. Shield UI works in Expo Go for browsing the list and adding personal domains, but **DNS blocking requires a development build**:
+
+```bash
+cd frontend
+npm install
+npx expo prebuild
+npx expo run:android
+```
+
+3. Open Profile → Shield (or Home → Shield), enable the toggle, and accept the Android VPN consent prompt.
+4. Keep SportyBet / Betway apps uninstalled for the strongest protection; Shield covers browsers and in-app webviews.
+
+iOS Network Extension support is not in this version.
+
 **Frontend tests**
 
 ```bash
@@ -96,13 +115,14 @@ npm test
 - **Profile & sharing** - editable display name, username and bio, private on-device profile photo, and a web/deep-link invitation that lets another user preview your safe public profile and add you as a buddy
 - **Achievements & progress** - private streak, journaling, urge-awareness and money-kept achievements, a streak detail view, and next-achievement progress
 - **Opt-in leaderboards** - friends and global streak rankings; disabled by default and limited to display name, username and streak (never money, urges, journal data, email or profile photo)
+- **Shield** - curated betting-domain blocklist from the backend, personal domains on-device, and an Android local DNS VPN that blocks those sites when enabled (dev/production build required; Expo Go can manage the list but cannot run the VPN)
 - **Support** - helplines (tap to call), communities and reading resources, crisis guidance
-- **Reminders** - optional daily check-in and encouragement notifications at times you choose (`expo-notifications`), scheduled on-device and persisted
+- **Reminders** - optional daily reflection and encouragement notifications at times you choose (`expo-notifications`), scheduled on-device and persisted
 - **Theming** - light / dark / system appearance, persisted, across every screen
 
-Habit and financial data stays local on the device (SQLite). Only accounts, buddies and check-ins go through the backend.
+Habit, financial, reflection and Shield preference data stays local on the device (SQLite / AsyncStorage). Accounts, buddies, check-ins and the shared shield catalog go through the backend.
 
 ## Tech
 
-- Frontend: Expo SDK 54 (Expo Go compatible), React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient, expo-notifications
+- Frontend: Expo SDK 54, React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient, expo-notifications, local `betapp-shield` Android VPN module
 - Backend: Express, MongoDB (Mongoose), JWT (jsonwebtoken), bcryptjs

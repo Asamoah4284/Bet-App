@@ -26,6 +26,7 @@ import { BuddyInviteScreen } from '../screens/BuddyInviteScreen';
 import { PrivacyScreen } from '../screens/PrivacyScreen';
 import { SupportScreen } from '../screens/SupportScreen';
 import { DailyReflectionScreen } from '../screens/DailyReflectionScreen';
+import { ShieldScreen } from '../screens/ShieldScreen';
 import { createSlideModalOptions, createSlideScreenOptions } from './transitions';
 
 const Stack = createStackNavigator();
@@ -96,6 +97,7 @@ export function RootNavigator({ bootstrapping }) {
             <Stack.Screen name="StreakDetail" component={StreakDetailScreen} />
             <Stack.Screen name="Privacy" component={PrivacyScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
+            <Stack.Screen name="Shield" component={ShieldScreen} />
           </>
         )}
         {hasCompletedOnboarding ? (

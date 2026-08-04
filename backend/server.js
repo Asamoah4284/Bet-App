@@ -8,6 +8,7 @@ const authRoutes = require('./src/routes/auth');
 const buddyRoutes = require('./src/routes/buddies');
 const checkinRoutes = require('./src/routes/checkins');
 const profileRoutes = require('./src/routes/profile');
+const shieldRoutes = require('./src/routes/shield');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -47,6 +48,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/buddies', buddyRoutes);
 app.use('/api/checkins', checkinRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/shield', shieldRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err);
@@ -54,7 +56,9 @@ app.use((err, req, res, next) => {
 });
 
 connectDatabase()
-  .then(() => {
+  .then(async () => {
+    const { ensureSeeded } = require('./src/controllers/shieldController');
+    await ensureSeeded();
     app.listen(PORT, () => {
       console.log(`Betapp backend running on port ${PORT}`);
     });

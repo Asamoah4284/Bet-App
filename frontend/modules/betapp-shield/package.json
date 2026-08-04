@@ -1,0 +1,12 @@
+{
+  "name": "betapp-shield",
+  "version": "1.0.0",
+  "description": "Local Android VPN DNS filter for Betapp Shield",
+  "main": "src/index.js",
+  "scripts": {},
+  "peerDependencies": {
+    "expo": "*",
+    "react": "*",
+    "react-native": "*"
+  }
+}
