@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { JWT_SECRET } = require('../middleware/auth');
+const { publicSubscription } = require('../services/subscription');
 
 const USERNAME_PATTERN = /^[a-z0-9_.]{3,20}$/;
 const RESET_CODE_TTL_MS = 15 * 60 * 1000;
@@ -30,6 +31,7 @@ function publicUser(user) {
     searchDiscoverable: Boolean(user.search_discoverable),
     buddyCode: user.buddy_code,
     hasPassword: Boolean(user.password_hash),
+    subscription: publicSubscription(user),
   };
 }
 
@@ -269,7 +271,15 @@ async function me(req, res, next) {
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json({ user: publicUser(user) });
+
+    const before = JSON.stringify(user.subscription || {});
+    const payload = publicUser(user);
+    if (before !== JSON.stringify(user.subscription || {})) {
+      user.markModified('subscription');
+      await user.save();
+    }
+
+    res.json({ user: payload });
   } catch (err) {
     next(err);
   }

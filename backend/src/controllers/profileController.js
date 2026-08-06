@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const BuddyLink = require('../models/BuddyLink');
+const { publicSubscription } = require('../services/subscription');
 
 const USERNAME_PATTERN = /^[a-z0-9_.]{3,20}$/;
 
@@ -14,6 +15,7 @@ function profileUser(user) {
     leaderboardOptIn: Boolean(user.leaderboard_opt_in),
     searchDiscoverable: Boolean(user.search_discoverable),
     hasPassword: Boolean(user.password_hash),
+    subscription: publicSubscription(user),
   };
 }
 

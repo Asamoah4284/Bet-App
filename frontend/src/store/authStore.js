@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { ApiError, authApi, profileApi } from '../services/api';
 import { tokenStorage } from '../services/secureStorage';
+import { useSubscriptionStore } from './subscriptionStore';
+
+function syncSubscriptionFromUser(user) {
+  useSubscriptionStore.getState().setFromUser(user);
+}
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -15,14 +20,17 @@ export const useAuthStore = create((set, get) => ({
     try {
       const token = await tokenStorage.read();
       if (!token) {
+        useSubscriptionStore.getState().clear();
         set({ user: null, token: null, hydrated: true, error: null });
         return;
       }
 
       const { user } = await authApi.me(token);
+      syncSubscriptionFromUser(user);
       set({ user, token, hydrated: true, error: null });
     } catch (error) {
       await tokenStorage.clear();
+      useSubscriptionStore.getState().clear();
       set({
         user: null,
         token: null,
@@ -37,6 +45,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.signup({ email, password, displayName, username });
       await tokenStorage.save(token);
+      syncSubscriptionFromUser(user);
       set({ token, user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -53,6 +62,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.login({ identifier, password });
       await tokenStorage.save(token);
+      syncSubscriptionFromUser(user);
       set({ token, user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -69,6 +79,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.google({ idToken });
       await tokenStorage.save(token);
+      syncSubscriptionFromUser(user);
       set({ token, user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -85,6 +96,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.resetPassword({ email, code, newPassword });
       await tokenStorage.save(token);
+      syncSubscriptionFromUser(user);
       set({ token, user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -101,6 +113,7 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { user } = await profileApi.update(token, profile);
+      syncSubscriptionFromUser(user);
       set({ user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -117,6 +130,7 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const { user } = await authApi.me(token);
+      syncSubscriptionFromUser(user);
       set({ user, error: null });
       return user;
     } catch (error) {
@@ -129,6 +143,7 @@ export const useAuthStore = create((set, get) => ({
 
   logout: async () => {
     await tokenStorage.clear();
+    useSubscriptionStore.getState().clear();
     set({ user: null, token: null, error: null, loading: false });
   },
 }));

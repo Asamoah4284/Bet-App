@@ -1,7 +1,7 @@
-// Production backend on Render. Override for local development with:
-//   $env:EXPO_PUBLIC_API_URL = "http://localhost:3000"   (or your LAN IP)
-export const API_BASE_URL =
-  process.env.EXPO_PUBLIC_API_URL || 'https://bet-app-dgqz.onrender.com';
+// Production backend on Render. Local/dev uses src/config/api.js (same pattern as As-market).
+import { API_BASE_URL } from '../config/api';
+
+export { API_BASE_URL };
 
 // Render free tier can take ~30–50s on a cold start after idle.
 const DEFAULT_TIMEOUT_MS = 45000;
@@ -15,13 +15,37 @@ export class ApiError extends Error {
   }
 }
 
+function looksLikeHtml(text) {
+  const sample = String(text || '').trim().slice(0, 80).toLowerCase();
+  return sample.startsWith('<!doctype') || sample.startsWith('<html') || sample.includes('<body');
+}
+
 export function mapApiError(payload, status) {
   if (typeof payload?.error === 'string' && payload.error.trim()) {
+    if (looksLikeHtml(payload.error)) {
+      return new ApiError(
+        `Payment API returned a web page instead of JSON (${status}). Check that API_URL points to the Quibet backend with Moolre routes (local :3000), not an old deploy.`,
+        status,
+        payload
+      );
+    }
     return new ApiError(payload.error, status, payload);
+  }
+
+  if (typeof payload?.message === 'string' && payload.message.trim()) {
+    return new ApiError(payload.message, status, payload);
   }
 
   if (status === 401) {
     return new ApiError('Invalid or expired session', status, payload);
+  }
+
+  if (status === 404) {
+    return new ApiError(
+      'Payment endpoint not found. Restart Expo with the local API URL so requests hit your nodemon backend.',
+      status,
+      payload
+    );
   }
 
   if (status >= 500) {
@@ -40,6 +64,12 @@ async function parseJsonSafe(response) {
   try {
     return JSON.parse(text);
   } catch {
+    if (looksLikeHtml(text)) {
+      return {
+        error: `Server returned HTML (${response.status}). Wrong API URL or route missing.`,
+        raw: text.slice(0, 120),
+      };
+    }
     return { error: text };
   }
 }
@@ -150,4 +180,33 @@ export const profileApi = {
   shared: (buddyCode) => apiRequest(`/api/profile/share/${encodeURIComponent(buddyCode)}`),
   leaderboard: (token, scope = 'global') =>
     apiRequest(`/api/profile/leaderboard?scope=${encodeURIComponent(scope)}`, { token }),
+};
+
+export const subscriptionApi = {
+  get: (token) => apiRequest('/api/subscription', { token }),
+  startTrial: (token, plan = 'yearly') =>
+    apiRequest('/api/subscription/start-trial', {
+      method: 'POST',
+      body: { plan },
+      token,
+    }),
+  activate: (token, plan) =>
+    apiRequest('/api/subscription/activate', {
+      method: 'POST',
+      body: { plan },
+      token,
+    }),
+  /** Same contract style as As-market initialize-moolre-payment */
+  initializePayment: (token, plan) =>
+    apiRequest('/api/subscription/initialize-payment', {
+      method: 'POST',
+      body: { plan },
+      token,
+    }),
+  confirmPayment: (token, { plan, paymentReference }) =>
+    apiRequest('/api/subscription/confirm-payment', {
+      method: 'POST',
+      body: { plan, paymentReference },
+      token,
+    }),
 };

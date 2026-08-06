@@ -33,7 +33,7 @@ const stackScreenOptions = {
 function HomeStackNavigator() {
   return (
     <HomeStack.Navigator screenOptions={stackScreenOptions}>
-      <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ title: 'Betapp' }} />
+      <HomeStack.Screen name="HomeMain" component={HomeScreen} options={{ title: 'Quibet' }} />
       <HomeStack.Screen name="LogUrge" component={LogUrgeScreen} options={{ title: 'Log an urge' }} />
       <HomeStack.Screen
         name="DailyCheckin"

@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './src/theme';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -9,10 +9,12 @@ import { useOnboardingStore } from './src/store/onboardingStore';
 import { useAuthStore } from './src/store/authStore';
 import { useReminderStore } from './src/store/reminderStore';
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
-SplashScreen.setOptions({ duration: 400, fade: true });
+// Keep native splash up only until the in-app splash has painted, then drop it instantly.
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
+ExpoSplashScreen.setOptions({ duration: 0, fade: false });
 
-const MIN_BRANDED_SPLASH_MS = 2800;
+/** In-app Quibet splash duration while stores hydrate. */
+const MIN_BRANDED_SPLASH_MS = 1800;
 
 export default function App() {
   const hydrateTheme = useThemeStore((state) => state.hydrate);
@@ -23,24 +25,13 @@ export default function App() {
   const onboardingHydrated = useOnboardingStore((state) => state.hydrated);
   const authHydrated = useAuthStore((state) => state.hydrated);
   const [brandedSplashDone, setBrandedSplashDone] = useState(false);
-  const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 
   useEffect(() => {
     hydrateTheme();
   }, [hydrateTheme]);
 
   useEffect(() => {
-    if (!themeHydrated || nativeSplashHidden) {
-      return;
-    }
-
-    SplashScreen.hideAsync()
-      .catch(() => {})
-      .finally(() => setNativeSplashHidden(true));
-  }, [themeHydrated, nativeSplashHidden]);
-
-  useEffect(() => {
-    if (!nativeSplashHidden) {
+    if (!themeHydrated) {
       return;
     }
 
@@ -62,14 +53,10 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, [nativeSplashHidden, hydrateOnboarding, bootstrapAuth, hydrateReminders]);
+  }, [themeHydrated, hydrateOnboarding, bootstrapAuth, hydrateReminders]);
 
   const bootstrapping =
-    !themeHydrated ||
-    !nativeSplashHidden ||
-    !onboardingHydrated ||
-    !authHydrated ||
-    !brandedSplashDone;
+    !themeHydrated || !onboardingHydrated || !authHydrated || !brandedSplashDone;
 
   return (
     <SafeAreaProvider>

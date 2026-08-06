@@ -118,7 +118,7 @@ export function BuddiesScreen({ navigation }) {
   const shareCode = async () => {
     if (!user?.buddyCode) return;
     await Share.share({
-      message: `Add me as your accountability buddy on Betapp! My buddy code is ${user.buddyCode}`,
+      message: `Add me as your accountability buddy on Quibet! My buddy code is ${user.buddyCode}`,
     });
   };
 

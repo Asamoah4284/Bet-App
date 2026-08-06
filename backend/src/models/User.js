@@ -31,6 +31,23 @@ const userSchema = new mongoose.Schema({
   buddy_code: { type: String, required: true, unique: true },
   reset_code_hash: { type: String, default: null },
   reset_code_expires: { type: Date, default: null },
+  subscription: {
+    plan: {
+      type: String,
+      enum: ['free', 'monthly', 'yearly', 'lifetime'],
+      default: 'free',
+    },
+    status: {
+      type: String,
+      enum: ['none', 'trialing', 'active', 'expired'],
+      default: 'none',
+    },
+    trialEndsAt: { type: Date, default: null },
+    currentPeriodEndsAt: { type: Date, default: null },
+    trialUsed: { type: Boolean, default: false },
+    storeProductId: { type: String, default: null },
+    updatedAt: { type: Date, default: null },
+  },
   created_at: { type: Date, default: Date.now },
 });
 
