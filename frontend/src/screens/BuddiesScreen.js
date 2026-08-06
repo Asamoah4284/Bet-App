@@ -473,28 +473,52 @@ export function BuddiesScreen({ navigation }) {
             </View>
           ) : (
             buddies.map((buddy, index, list) => (
-              <Pressable
+              <View
                 key={buddy.linkId}
-                accessibilityRole="button"
-                onPress={() =>
-                  navigation.navigate('BuddyDetail', {
-                    userId: buddy.id,
-                    displayName: buddy.displayName,
-                    linkId: buddy.linkId,
-                  })
-                }
-                style={({ pressed }) => [
+                style={[
                   styles.personRow,
                   index < list.length - 1 && {
                     borderBottomWidth: StyleSheet.hairlineWidth,
                     borderBottomColor: theme.colors.border,
                   },
-                  { opacity: pressed ? 0.7 : 1 },
                 ]}
               >
-                <Identity person={buddy} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`${buddy.displayName} details`}
+                  onPress={() =>
+                    navigation.navigate('BuddyDetail', {
+                      userId: buddy.id,
+                      displayName: buddy.displayName,
+                      linkId: buddy.linkId,
+                    })
+                  }
+                  style={({ pressed }) => [styles.personMain, { opacity: pressed ? 0.7 : 1 }]}
+                >
+                  <Identity person={buddy} />
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Message ${buddy.displayName}`}
+                  onPress={() =>
+                    navigation.navigate('BuddyChat', {
+                      userId: buddy.id,
+                      displayName: buddy.displayName,
+                    })
+                  }
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.messageChip,
+                    {
+                      backgroundColor: theme.colors.primaryMuted,
+                      opacity: pressed ? 0.75 : 1,
+                    },
+                  ]}
+                >
+                  <Ionicons name="chatbubble-ellipses-outline" size={18} color={theme.colors.primary} />
+                </Pressable>
                 <Ionicons name="chevron-forward" size={17} color={theme.colors.textMuted} />
-              </Pressable>
+              </View>
             ))
           )}
         </Panel>
@@ -676,6 +700,16 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
+  },
+  personMain: {
+    flex: 1,
+  },
+  messageChip: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   searchResultRow: {
     borderTopWidth: StyleSheet.hairlineWidth,

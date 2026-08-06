@@ -16,6 +16,7 @@ import { JournalEntryScreen } from '../screens/JournalEntryScreen';
 import { LogMoneyScreen } from '../screens/LogMoneyScreen';
 import { CheckinScreen } from '../screens/CheckinScreen';
 import { BuddyDetailScreen } from '../screens/BuddyDetailScreen';
+import { BuddyChatScreen } from '../screens/BuddyChatScreen';
 import { UrgeSOSScreen } from '../screens/UrgeSOSScreen';
 import { SafetyPlanScreen } from '../screens/SafetyPlanScreen';
 import { ReminderSettingsScreen } from '../screens/ReminderSettingsScreen';
@@ -104,6 +105,7 @@ export function RootNavigator({ bootstrapping }) {
               <Stack.Screen name="DailyReflection" component={DailyReflectionScreen} />
             </Stack.Group>
             <Stack.Screen name="BuddyDetail" component={BuddyDetailScreen} />
+            <Stack.Screen name="BuddyChat" component={BuddyChatScreen} />
             <Stack.Screen name="Reminders" component={ReminderSettingsScreen} />
             <Stack.Screen name="EditProfile" component={EditProfileScreen} />
             <Stack.Screen name="Achievements" component={AchievementsScreen} />

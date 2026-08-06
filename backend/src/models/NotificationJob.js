@@ -10,6 +10,7 @@ const notificationJobSchema = new mongoose.Schema({
       'buddy_request',
       'buddy_accepted',
       'buddy_checkin',
+      'buddy_message',
       'streak_milestone',
       'daily_checkin',
       'daily_encouragement',

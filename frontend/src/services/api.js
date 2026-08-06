@@ -142,6 +142,25 @@ export const checkinsApi = {
   forBuddy: (token, userId) => apiRequest(`/api/checkins/buddy/${userId}`, { token }),
 };
 
+export const messagesApi = {
+  thread: (token, userId, { before, limit } = {}) => {
+    const params = new URLSearchParams();
+    if (before) params.set('before', before);
+    if (limit) params.set('limit', String(limit));
+    const query = params.toString();
+    return apiRequest(
+      `/api/messages/with/${encodeURIComponent(userId)}${query ? `?${query}` : ''}`,
+      { token }
+    );
+  },
+  send: (token, { toUserId, body }) =>
+    apiRequest('/api/messages', {
+      method: 'POST',
+      body: { toUserId, body },
+      token,
+    }),
+};
+
 export const profileApi = {
   update: (token, profile) =>
     apiRequest('/api/profile/me', { method: 'PUT', body: profile, token }),

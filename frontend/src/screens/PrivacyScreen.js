@@ -31,7 +31,7 @@ const ITEMS = [
   {
     icon: 'shield-outline',
     title: 'Shield website blocking',
-    text: 'When you enable Shield, a local DNS VPN on this phone blocks betting domains. The blocklist syncs from the server, but browsing traffic is filtered on-device and is never uploaded.',
+    text: 'When you enable Shield, a local on-device DNS filter blocks betting websites (Android VPN / iOS Packet Tunnel). The blocklist syncs from the server, but browsing traffic is filtered on-device and is never uploaded.',
   },
 ];
 

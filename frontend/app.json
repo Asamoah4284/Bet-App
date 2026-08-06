@@ -14,7 +14,14 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.betapp.recovery"
+      "bundleIdentifier": "com.betapp.recovery",
+      "infoPlist": {
+        "NSLocalNetworkUsageDescription": "Betapp Shield uses a local on-device filter to block gambling websites."
+      },
+      "entitlements": {
+        "com.apple.developer.networking.networkextension": ["packet-tunnel-provider"],
+        "com.apple.security.application-groups": ["group.com.betapp.recovery.shield"]
+      }
     },
     "android": {
       "package": "com.betapp.recovery",

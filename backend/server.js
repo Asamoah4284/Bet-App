@@ -7,6 +7,7 @@ const { connectDatabase } = require('./src/db/database');
 const authRoutes = require('./src/routes/auth');
 const buddyRoutes = require('./src/routes/buddies');
 const checkinRoutes = require('./src/routes/checkins');
+const messageRoutes = require('./src/routes/messages');
 const profileRoutes = require('./src/routes/profile');
 const shieldRoutes = require('./src/routes/shield');
 const notificationRoutes = require('./src/routes/notifications');
@@ -49,6 +50,7 @@ app.get('/buddy/:buddyCode', async (req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/buddies', buddyRoutes);
 app.use('/api/checkins', checkinRoutes);
+app.use('/api/messages', messageRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/shield', shieldRoutes);
 app.use('/api/notifications', notificationRoutes);

@@ -54,12 +54,23 @@ export function BuddyDetailScreen({ route, navigation }) {
     ]);
   };
 
+  const openChat = () => {
+    navigation.navigate('BuddyChat', { userId, displayName });
+  };
+
   return (
     <Screen scroll>
       <BackHeader title={displayName} />
       <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: -8, marginBottom: 16 }]}>
         Their recent check-ins
       </Text>
+
+      <Button
+        label="Message"
+        icon="chatbubble-ellipses-outline"
+        onPress={openChat}
+        style={styles.messageButton}
+      />
 
       {error ? (
         <Card>
@@ -68,7 +79,7 @@ export function BuddyDetailScreen({ route, navigation }) {
       ) : checkins.length === 0 ? (
         <Card>
           <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-            No check-ins yet. Maybe send them some encouragement.
+            No check-ins yet. Send them a message for encouragement.
           </Text>
         </Card>
       ) : (
@@ -103,6 +114,9 @@ export function BuddyDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
+  messageButton: {
+    marginBottom: 16,
+  },
   checkinHeader: {
     flexDirection: 'row',
     alignItems: 'center',

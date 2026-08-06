@@ -29,6 +29,16 @@ export function routeNotificationResponse(response) {
     case 'Buddies':
       navigate('Main', { screen: 'Buddies' });
       break;
+    case 'BuddyChat':
+      if (data.userId) {
+        navigate('BuddyChat', {
+          userId: data.userId,
+          displayName: data.displayName || 'Buddy',
+        });
+      } else {
+        navigate('Main', { screen: 'Buddies' });
+      }
+      break;
     case 'Home':
       navigate('Main', { screen: 'Home' });
       break;
@@ -55,6 +65,8 @@ function mapTypeToScreen(type) {
     case 'buddy_accepted':
     case 'buddy_checkin':
       return 'Buddies';
+    case 'buddy_message':
+      return 'BuddyChat';
     case 'streak_milestone':
       return 'StreakDetail';
     case 'achievement':

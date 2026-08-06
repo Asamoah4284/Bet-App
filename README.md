@@ -80,22 +80,38 @@ In Expo Go the button shows a friendly "needs a development build" notice instea
 
 **Shield (betting website blocking)**
 
-Shield blocks known gambling **websites** with a local DNS VPN on Android. It does **not** force-close or uninstall native betting apps.
+Shield blocks known gambling **websites** with a local DNS filter:
+- **Android** — local DNS VPN (`VpnService`)
+- **iOS** — Packet Tunnel Network Extension (same DNS sinkhole approach)
+
+It does **not** force-close or uninstall native betting apps.
 
 1. Redeploy the backend so `GET /api/shield/targets` is available (seeds Ghana-focused domains on first boot).
-2. Shield UI works in Expo Go for browsing the list and adding personal domains, but **DNS blocking requires a development build**:
+2. Shield UI works in Expo Go for browsing the list and adding personal domains, but **DNS blocking requires a development / preview / production build**.
+
+**Android**
 
 ```bash
 cd frontend
-npm install
 npx expo prebuild
 npx expo run:android
 ```
 
-3. Open Profile → Shield (or Home → Shield), enable the toggle, and accept the Android VPN consent prompt.
-4. Keep SportyBet / Betway apps uninstalled for the strongest protection; Shield covers browsers and in-app webviews.
+**iOS (Apple Developer account required)**
 
-iOS Network Extension support is not in this version.
+1. In [Apple Developer → Identifiers](https://developer.apple.com/account/resources/identifiers/list), enable for `com.betapp.recovery`:
+   - **Network Extensions** → Packet Tunnel
+   - **App Groups** → create/add `group.com.betapp.recovery.shield`
+2. Create an App ID for the extension: `com.betapp.recovery.ShieldTunnel` with the same Network Extensions + App Group capabilities.
+3. Build with EAS (config plugin embeds the extension):
+
+```bash
+cd frontend
+eas build -p ios --profile preview
+```
+
+4. Install the build, open Profile → Shield, enable the toggle, and accept the system VPN / Network Extension permission prompt.
+5. Keep SportyBet / Betway apps uninstalled for the strongest protection; Shield covers browsers and in-app webviews.
 
 **Frontend tests**
 
@@ -115,7 +131,7 @@ npm test
 - **Profile & sharing** - editable display name, username and bio, private on-device profile photo, and a web/deep-link invitation that lets another user preview your safe public profile and add you as a buddy
 - **Achievements & progress** - private streak, journaling, urge-awareness and money-kept achievements, a streak detail view, and next-achievement progress
 - **Opt-in leaderboards** - friends and global streak rankings; disabled by default and limited to display name, username and streak (never money, urges, journal data, email or profile photo)
-- **Shield** - curated betting-domain blocklist from the backend, personal domains on-device, and an Android local DNS VPN that blocks those sites when enabled (dev/production build required; Expo Go can manage the list but cannot run the VPN)
+- **Shield** - curated betting-domain blocklist from the backend, personal domains on-device, and a local DNS filter that blocks those sites when enabled — Android VPN + iOS Packet Tunnel (dev/production build required; Expo Go can manage the list but cannot run the filter)
 - **Support** - helplines (tap to call), communities and reading resources, crisis guidance
 - **Reminders & push** - optional daily reflection and encouragement at times you choose; buddy events, streak milestones, and a gentle Urge SOS follow-up. Preferences sync to the backend when signed in. Signed-in users on a native build receive dailies via Expo Push (server cron); otherwise dailies stay on-device. Tap a notification to jump to the matching screen.
 - **Theming** - light / dark / system appearance, persisted, across every screen
@@ -137,5 +153,5 @@ Remote push needs a **development, preview, or production build** (not Expo Go):
 
 ## Tech
 
-- Frontend: Expo SDK 54, React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient, expo-notifications, local `betapp-shield` Android VPN module
+- Frontend: Expo SDK 54, React Navigation (stack + bottom tabs), Zustand, expo-sqlite, AsyncStorage, expo-secure-store, expo-linear-gradient, expo-notifications, local `betapp-shield` module (Android VPN + iOS Packet Tunnel)
 - Backend: Express, MongoDB (Mongoose), JWT (jsonwebtoken), bcryptjs, expo-server-sdk, node-cron

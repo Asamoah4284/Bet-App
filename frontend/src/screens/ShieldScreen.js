@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
@@ -84,7 +84,9 @@ export function ShieldScreen({ navigation }) {
             {vpnActive
               ? 'Local DNS filter is active on this phone.'
               : capability.available
-                ? 'Turn on the switch to start the local VPN filter.'
+                ? Platform.OS === 'ios'
+                  ? 'Turn on the switch and allow the Shield VPN configuration when iOS asks.'
+                  : 'Turn on the switch to start the local VPN filter.'
                 : capability.message}
           </Text>
         </View>
@@ -99,8 +101,9 @@ export function ShieldScreen({ navigation }) {
 
       <Card title="What Shield does">
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary }]}>
-          Blocks known betting websites (and sites you add) through a local DNS VPN on this device.
-          Traffic stays on your phone — Betapp does not inspect your browsing remotely.
+          Blocks known betting websites (and sites you add) with a local DNS filter
+          {Platform.OS === 'ios' ? ' (iOS Packet Tunnel)' : ' (Android VPN)'} on this device. Traffic
+          stays on your phone — Betapp does not inspect your browsing remotely.
         </Text>
         <Text style={[theme.typography.body, { color: theme.colors.textSecondary, marginTop: 10 }]}>
           It cannot force-close or uninstall native betting apps like SportyBet. For strongest
@@ -179,7 +182,7 @@ export function ShieldScreen({ navigation }) {
         ))}
       </Card>
 
-      {packageTargets.length > 0 ? (
+      {Platform.OS === 'android' && packageTargets.length > 0 ? (
         <Card title="Known Android apps">
           <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginBottom: 6 }]}>
             Listed for awareness only in this version. Shield does not force-close these apps.

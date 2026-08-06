@@ -1,7 +1,7 @@
 {
   "name": "betapp-shield",
   "version": "1.0.0",
-  "description": "Local Android VPN DNS filter for Betapp Shield",
+  "description": "Local DNS filter for Betapp Shield (Android VPN + iOS Packet Tunnel)",
   "main": "src/index.js",
   "scripts": {},
   "peerDependencies": {

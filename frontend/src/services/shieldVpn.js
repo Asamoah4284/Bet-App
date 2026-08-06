@@ -2,8 +2,9 @@ import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 /**
- * Bridge to the local `betapp-shield` Expo module (Android VPN DNS filter).
- * Unavailable in Expo Go and on iOS until Network Extension support lands.
+ * Bridge to the local `betapp-shield` Expo module
+ * (Android DNS VPN + iOS Packet Tunnel DNS filter).
+ * Unavailable in Expo Go.
  */
 
 function isExpoGo() {
@@ -11,7 +12,7 @@ function isExpoGo() {
 }
 
 function loadNativeModule() {
-  if (isExpoGo() || Platform.OS !== 'android') {
+  if (isExpoGo() || (Platform.OS !== 'android' && Platform.OS !== 'ios')) {
     return null;
   }
 
@@ -25,12 +26,11 @@ function loadNativeModule() {
 }
 
 export function getShieldCapability() {
-  if (Platform.OS !== 'android') {
+  if (Platform.OS !== 'android' && Platform.OS !== 'ios') {
     return {
       available: false,
-      reason: 'ios',
-      message:
-        'Website blocking on iOS needs a Network Extension build (coming later). Uninstall betting apps for the strongest protection today.',
+      reason: 'unsupported',
+      message: 'Shield website blocking is available on Android and iOS development builds.',
     };
   }
 
@@ -39,7 +39,9 @@ export function getShieldCapability() {
       available: false,
       reason: 'expo-go',
       message:
-        'Shield needs a development build (not Expo Go). Run prebuild and install the Android app to enable DNS blocking.',
+        Platform.OS === 'ios'
+          ? 'Shield needs a development build (not Expo Go). Run an EAS iOS build that includes the Network Extension.'
+          : 'Shield needs a development build (not Expo Go). Run prebuild and install the Android app to enable DNS blocking.',
     };
   }
 
@@ -49,7 +51,9 @@ export function getShieldCapability() {
       available: false,
       reason: 'missing-native',
       message:
-        'Shield native module is not linked. Rebuild with `npx expo prebuild` then `npx expo run:android`.',
+        Platform.OS === 'ios'
+          ? 'Shield native tunnel is not linked. Rebuild with EAS (iOS Network Extension) or `npx expo prebuild` + `npx expo run:ios`.'
+          : 'Shield native module is not linked. Rebuild with `npx expo prebuild` then `npx expo run:android`.',
     };
   }
 

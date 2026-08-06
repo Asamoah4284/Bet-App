@@ -4,7 +4,7 @@ import { Platform } from 'react-native';
 let BetappShield = null;
 
 try {
-  if (Platform.OS === 'android') {
+  if (Platform.OS === 'android' || Platform.OS === 'ios') {
     BetappShield = requireNativeModule('BetappShield');
   }
 } catch {
@@ -12,7 +12,7 @@ try {
 }
 
 export function isSupported() {
-  return Platform.OS === 'android' && !!BetappShield;
+  return (Platform.OS === 'android' || Platform.OS === 'ios') && !!BetappShield;
 }
 
 export async function prepare() {
