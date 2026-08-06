@@ -5,6 +5,7 @@ import {
   registerPushDevice,
   unregisterPushDevice,
 } from '../services/pushRegistration';
+import { useSubscriptionStore } from './subscriptionStore';
 
 let onSessionChange = null;
 
@@ -21,7 +22,12 @@ function notifySessionChange() {
   }
 }
 
+function syncSubscriptionFromUser(user) {
+  useSubscriptionStore.getState().setFromUser(user);
+}
+
 async function afterAuthSuccess(set, token, user) {
+  syncSubscriptionFromUser(user);
   set({ token, user, loading: false, error: null });
   registerPushDevice(token).catch(() => {});
   notifySessionChange();
@@ -40,15 +46,18 @@ export const useAuthStore = create((set, get) => ({
     try {
       const token = await tokenStorage.read();
       if (!token) {
+        useSubscriptionStore.getState().clear();
         set({ user: null, token: null, hydrated: true, error: null });
         return;
       }
 
       const { user } = await authApi.me(token);
+      syncSubscriptionFromUser(user);
       set({ user, token, hydrated: true, error: null });
       registerPushDevice(token).catch(() => {});
     } catch (error) {
       await tokenStorage.clear();
+      useSubscriptionStore.getState().clear();
       set({
         user: null,
         token: null,
@@ -127,6 +136,7 @@ export const useAuthStore = create((set, get) => ({
     set({ loading: true, error: null });
     try {
       const { user } = await profileApi.update(token, profile);
+      syncSubscriptionFromUser(user);
       set({ user, loading: false, error: null });
       return user;
     } catch (error) {
@@ -143,6 +153,7 @@ export const useAuthStore = create((set, get) => ({
 
     try {
       const { user } = await authApi.me(token);
+      syncSubscriptionFromUser(user);
       set({ user, error: null });
       return user;
     } catch (error) {
@@ -157,6 +168,7 @@ export const useAuthStore = create((set, get) => ({
     const token = get().token;
     await unregisterPushDevice(token).catch(() => {});
     await tokenStorage.clear();
+    useSubscriptionStore.getState().clear();
     set({ user: null, token: null, error: null, loading: false });
     notifySessionChange();
   },

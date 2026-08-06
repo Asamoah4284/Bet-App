@@ -1,4 +1,4 @@
-// Betapp design system — calm recovery palette (no casino red/gold).
+// Quibet design system — calm recovery palette (no casino red/gold).
 export const palette = {
   primary: '#1E3A5F',
   primaryDark: '#152A45',

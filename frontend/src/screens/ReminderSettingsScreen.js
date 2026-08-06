@@ -105,7 +105,7 @@ export function ReminderSettingsScreen() {
       {permissionDenied ? (
         <Card style={{ borderColor: theme.colors.danger, marginBottom: 12 }}>
           <Text style={[theme.typography.body, { color: theme.colors.danger, marginBottom: 12 }]}>
-            Notifications are turned off for Betapp. Enable them in your device settings to receive
+            Notifications are turned off for Quibet. Enable them in your device settings to receive
             reminders.
           </Text>
           <Button label="Open device settings" onPress={() => Linking.openSettings()} />

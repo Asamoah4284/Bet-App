@@ -1,32 +1,24 @@
-import { StyleSheet, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../theme';
 
-export function BrandMark({ size = 72, showWordmark = false }) {
+const logoInk = require('../../assets/images/logo-mark.png');
+const logoWhite = require('../../assets/images/logo-mark-white.png');
+
+export function BrandMark({ size = 72, showWordmark = false, forceLight = false }) {
   const theme = useTheme();
+  const useWhite = forceLight || theme.mode === 'dark';
 
   return (
     <View style={styles.wrap}>
-      <LinearGradient
-        colors={theme.colors.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={[
-          styles.mark,
-          {
-            width: size,
-            height: size,
-            borderRadius: size * 0.32,
-          },
-        ]}
-      >
-        <Text style={[styles.glyph, { fontSize: size * 0.42, color: theme.colors.textInverse }]}>
-          B
-        </Text>
-      </LinearGradient>
+      <Image
+        source={useWhite ? logoWhite : logoInk}
+        accessibilityLabel="Quibet"
+        style={{ width: size, height: size }}
+        resizeMode="contain"
+      />
       {showWordmark ? (
         <Text style={[theme.typography.title, { color: theme.colors.text, marginTop: 12 }]}>
-          Betapp
+          Quibet
         </Text>
       ) : null}
     </View>
@@ -36,12 +28,5 @@ export function BrandMark({ size = 72, showWordmark = false }) {
 const styles = StyleSheet.create({
   wrap: {
     alignItems: 'center',
-  },
-  mark: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  glyph: {
-    fontWeight: '800',
   },
 });

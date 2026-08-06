@@ -11,8 +11,10 @@ import { useAuthStore } from '../store/authStore';
 import { useProfileStore } from '../store/profileStore';
 import { useHabitStore } from '../store/habitStore';
 import { useFinanceStore } from '../store/financeStore';
+import { useSubscriptionStore } from '../store/subscriptionStore';
 import { profileApi, API_BASE_URL } from '../services/api';
 import { achievementSummary } from '../services/achievements';
+import { normalizeSubscription, subscriptionPackageCopy } from '../services/subscription';
 
 function MenuRow({ icon, color, muted, title, detail, onPress }) {
   const theme = useTheme();
@@ -48,6 +50,7 @@ export function ProfileScreen({ navigation }) {
   const user = useAuthStore((state) => state.user);
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
+  const refreshSession = useAuthStore((state) => state.refreshSession);
   const avatarUri = useProfileStore((state) => state.avatarUri);
   const hydrateProfile = useProfileStore((state) => state.hydrate);
   const streakDays = useHabitStore((state) => state.streakDays);
@@ -56,6 +59,16 @@ export function ProfileScreen({ navigation }) {
   const refreshHabits = useHabitStore((state) => state.refresh);
   const moneyKept = useFinanceStore((state) => state.summary.moneyKept);
   const refreshFinance = useFinanceStore((state) => state.refresh);
+  const subscriptionFromStore = useSubscriptionStore((state) => state.subscription);
+  const setFromUser = useSubscriptionStore((state) => state.setFromUser);
+  const fromStore = normalizeSubscription(subscriptionFromStore);
+  const fromUser = normalizeSubscription(user?.subscription);
+  const subscription =
+    fromStore.isPremium || fromStore.status === 'expired' || fromStore.status === 'trialing'
+      ? fromStore
+      : fromUser.isPremium || fromUser.status !== 'none'
+        ? fromUser
+        : fromStore;
 
   useEffect(() => {
     hydrateProfile();
@@ -65,7 +78,12 @@ export function ProfileScreen({ navigation }) {
     useCallback(() => {
       refreshHabits();
       refreshFinance();
-    }, [refreshHabits, refreshFinance])
+      refreshSession()
+        .then((nextUser) => {
+          if (nextUser) setFromUser(nextUser);
+        })
+        .catch(() => {});
+    }, [refreshHabits, refreshFinance, refreshSession, setFromUser])
   );
 
   useEffect(() => {
@@ -87,13 +105,15 @@ export function ProfileScreen({ navigation }) {
     journalEntries: journalEntries.length,
   });
 
+  const packageCopy = subscriptionPackageCopy(subscription);
+
   const shareProfile = async () => {
     if (!user?.buddyCode) return;
     const url = `${API_BASE_URL}/buddy/${user.buddyCode}`;
     await Share.share({
-      title: `Add ${user.displayName} on Betapp`,
+      title: `Add ${user.displayName} on Quibet`,
       message:
-        `Add me as an accountability buddy on Betapp.\n\n${url}\n\n` +
+        `Add me as an accountability buddy on Quibet.\n\n${url}\n\n` +
         `If the link doesn't open the app, use buddy code ${user.buddyCode}.`,
       url,
     });
@@ -218,6 +238,73 @@ export function ProfileScreen({ navigation }) {
           <Ionicons name="chevron-forward" size={18} color={theme.colors.primary} />
         </Pressable>
       ) : null}
+
+      <Text style={[theme.typography.caption, styles.section, { color: theme.colors.textSecondary }]}>
+        SUBSCRIPTION
+      </Text>
+      <View
+        style={[
+          styles.subCard,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.border,
+            borderRadius: theme.radii.lg,
+          },
+        ]}
+      >
+        <View style={[styles.menuIcon, { backgroundColor: theme.colors.primaryMuted, borderRadius: theme.radii.sm }]}>
+          <Ionicons
+            name={packageCopy.isPremium ? 'diamond' : 'diamond-outline'}
+            size={20}
+            color={theme.colors.primary}
+          />
+        </View>
+        <View style={styles.menuBody}>
+          <View style={styles.subTitleRow}>
+            <Text style={[theme.typography.body, { color: theme.colors.text, fontWeight: '700', flex: 1 }]}>
+              {packageCopy.title}
+            </Text>
+            {packageCopy.badge ? (
+              <View
+                style={[
+                  styles.subBadge,
+                  {
+                    backgroundColor: packageCopy.isPremium
+                      ? theme.colors.primaryMuted
+                      : theme.colors.surfaceMuted,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    theme.typography.caption,
+                    {
+                      color: packageCopy.isPremium ? theme.colors.primary : theme.colors.textSecondary,
+                      fontWeight: '700',
+                      fontSize: 11,
+                    },
+                  ]}
+                >
+                  {packageCopy.badge}
+                </Text>
+              </View>
+            ) : null}
+          </View>
+          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
+            {packageCopy.detail}
+          </Text>
+          {packageCopy.priceLine ? (
+            <Text
+              style={[
+                theme.typography.caption,
+                { color: theme.colors.primary, fontWeight: '600', marginTop: 4 },
+              ]}
+            >
+              {packageCopy.priceLine}
+            </Text>
+          ) : null}
+        </View>
+      </View>
 
       <Text style={[theme.typography.caption, styles.section, { color: theme.colors.textSecondary }]}>
         RECOVERY
@@ -429,6 +516,24 @@ const styles = StyleSheet.create({
   menu: {
     borderWidth: 1,
     overflow: 'hidden',
+  },
+  subCard: {
+    borderWidth: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  subTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  subBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 999,
   },
   menuRow: {
     flexDirection: 'row',

@@ -1,6 +1,6 @@
 import 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
-import * as SplashScreen from 'expo-splash-screen';
+import * as ExpoSplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
   Inter_400Regular,
@@ -21,10 +21,12 @@ import { useOnboardingStore } from './src/store/onboardingStore';
 import { setAuthSessionListener, useAuthStore } from './src/store/authStore';
 import { useReminderStore } from './src/store/reminderStore';
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
-SplashScreen.setOptions({ duration: 400, fade: true });
+// Keep native splash up until the in-app splash has painted; SplashScreen hides it.
+ExpoSplashScreen.preventAutoHideAsync().catch(() => {});
+ExpoSplashScreen.setOptions({ duration: 0, fade: false });
 
-const MIN_BRANDED_SPLASH_MS = 2800;
+/** In-app splash duration while stores hydrate. */
+const MIN_BRANDED_SPLASH_MS = 1800;
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -45,7 +47,6 @@ export default function App() {
   const onboardingHydrated = useOnboardingStore((state) => state.hydrated);
   const authHydrated = useAuthStore((state) => state.hydrated);
   const [brandedSplashDone, setBrandedSplashDone] = useState(false);
-  const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 
   useEffect(() => {
     setAuthSessionListener(() => {
@@ -59,17 +60,7 @@ export default function App() {
   }, [hydrateTheme]);
 
   useEffect(() => {
-    if (!themeHydrated || !fontsLoaded || nativeSplashHidden) {
-      return;
-    }
-
-    SplashScreen.hideAsync()
-      .catch(() => {})
-      .finally(() => setNativeSplashHidden(true));
-  }, [themeHydrated, fontsLoaded, nativeSplashHidden]);
-
-  useEffect(() => {
-    if (!nativeSplashHidden) {
+    if (!themeHydrated || !fontsLoaded) {
       return;
     }
 
@@ -93,12 +84,11 @@ export default function App() {
     return () => {
       mounted = false;
     };
-  }, [nativeSplashHidden, hydrateOnboarding, bootstrapAuth, hydrateReminders]);
+  }, [themeHydrated, fontsLoaded, hydrateOnboarding, bootstrapAuth, hydrateReminders]);
 
   const bootstrapping =
     !fontsLoaded ||
     !themeHydrated ||
-    !nativeSplashHidden ||
     !onboardingHydrated ||
     !authHydrated ||
     !brandedSplashDone;

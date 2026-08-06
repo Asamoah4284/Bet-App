@@ -59,7 +59,7 @@ export function SafetyPlanScreen({ navigation }) {
       <ModalHeader
         kicker="Urge support"
         title="My safety plan"
-        subtitle="Write these while you feel steady. Betapp will put them in front of you when an urge hits."
+        subtitle="Write these while you feel steady. Quibet will put them in front of you when an urge hits."
         accent="secondary"
       />
 

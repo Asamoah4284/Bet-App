@@ -229,7 +229,7 @@ export function HomeScreen({ navigation }) {
       <View>
         <View style={styles.topBar}>
           <View>
-            <Text style={[styles.brand, { color: theme.colors.primary }]}>Betapp</Text>
+            <Text style={[styles.brand, { color: theme.colors.primary }]}>Quibet</Text>
             <Text style={[styles.greeting, { color: theme.colors.text }]}>
               {greetingFor()}, {firstName}
             </Text>

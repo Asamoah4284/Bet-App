@@ -1,282 +1,473 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { Screen } from '../components/Screen';
+import { LinearGradient } from 'expo-linear-gradient';
+import { StatusBar } from 'expo-status-bar';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '../components/Button';
-import { ThemeToggle } from '../components/ThemeToggle';
+import { BrandMark } from '../components/BrandMark';
 import { useTheme } from '../theme';
 import { useOnboardingStore } from '../store/onboardingStore';
 
-const { width } = Dimensions.get('window');
+const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
+const HERO_H = Math.min(SCREEN_H * 0.52, 460);
 
 const PAGES = [
   {
     key: 'control',
     image: require('../../assets/onboarding/control.png'),
-    tag: 'Take back control',
-    title: 'Your recovery,\none steady step at a time',
-    body: 'Pause urges with calm breathing tools, notice your patterns without judgment, and build a plan that fits your life.',
-    accent: 'primary',
+    kicker: 'Find your bearings',
+    title: 'Take back control,\none calm step at a time',
+    body: 'Pause urges with steady tools, notice patterns without judgment, and rebuild on your own terms.',
+    glow: ['#1E3A5F', '#2A9D8F'],
   },
   {
     key: 'progress',
     image: require('../../assets/onboarding/progress.png'),
-    tag: 'Watch it add up',
-    title: 'Progress you can\nactually see and feel',
-    body: 'Count gambling-free days, watch the money you kept grow, and celebrate the small wins that rebuild confidence.',
-    accent: 'secondary',
+    kicker: 'See the difference',
+    title: 'Progress you can\nfeel and measure',
+    body: 'Count gambling-free days, watch the money you kept grow, and mark the wins that rebuild confidence.',
+    glow: ['#152A45', '#1F7F73'],
   },
   {
     key: 'support',
     image: require('../../assets/onboarding/support.png'),
-    tag: 'Never alone',
-    title: 'Real support,\nright when you need it',
-    body: 'Team up with a trusted buddy, share daily check-ins, and reach helplines instantly on the hardest days.',
-    accent: 'accent',
+    kicker: 'Stay connected',
+    title: 'Support when you\nneed it most',
+    body: 'Lean on a trusted buddy, share check-ins, and reach helplines in a tap on the hardest days.',
+    glow: ['#1E3A5F', '#4CAF87'],
   },
 ];
 
 export function OnboardingScreen() {
   const theme = useTheme();
+  const insets = useSafeAreaInsets();
   const completeOnboarding = useOnboardingStore((state) => state.completeOnboarding);
   const listRef = useRef(null);
   const scrollX = useRef(new Animated.Value(0)).current;
+  const enter = useRef(new Animated.Value(0)).current;
+  const float = useRef(new Animated.Value(0)).current;
   const [index, setIndex] = useState(0);
 
   const isLast = index === PAGES.length - 1;
+  const page = PAGES[index];
+
+  useEffect(() => {
+    Animated.timing(enter, {
+      toValue: 1,
+      duration: 700,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(float, {
+          toValue: 1,
+          duration: 2800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+        Animated.timing(float, {
+          toValue: 0,
+          duration: 2800,
+          easing: Easing.inOut(Easing.sin),
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [enter, float]);
+
+  const goTo = (nextIndex) => {
+    listRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+    setIndex(nextIndex);
+  };
 
   const goNext = async () => {
     if (!isLast) {
-      listRef.current?.scrollToIndex({ index: index + 1, animated: true });
+      goTo(index + 1);
       return;
     }
     await completeOnboarding();
   };
 
-  const accentColor = (page) => theme.colors[page.accent];
-  const accentMuted = (page) =>
-    theme.colors[`${page.accent}Muted`] ?? theme.colors.primaryMuted;
+  const goBack = () => {
+    if (index > 0) goTo(index - 1);
+  };
+
+  const floatY = float.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -10],
+  });
+
+  const screenOpacity = enter.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const screenLift = enter.interpolate({
+    inputRange: [0, 1],
+    outputRange: [18, 0],
+  });
 
   return (
-    <Screen contentStyle={styles.screen}>
-      <View style={styles.topRow}>
-        <ThemeToggle compact />
-        <Pressable onPress={completeOnboarding} hitSlop={12}>
-          <Text style={[theme.typography.caption, { color: theme.colors.textSecondary }]}>
-            Skip
-          </Text>
-        </Pressable>
-      </View>
+    <View style={[styles.root, { backgroundColor: theme.colors.background }]}>
+      <StatusBar style={theme.colors.statusBar} />
 
-      <Animated.FlatList
-        ref={listRef}
-        data={PAGES}
-        keyExtractor={(item) => item.key}
-        horizontal
-        pagingEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        onScroll={Animated.event(
-          [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-          { useNativeDriver: true },
-        )}
-        onMomentumScrollEnd={(event) => {
-          setIndex(Math.round(event.nativeEvent.contentOffset.x / width));
-        }}
-        renderItem={({ item, index: pageIndex }) => {
-          const inputRange = [
-            (pageIndex - 1) * width,
-            pageIndex * width,
-            (pageIndex + 1) * width,
-          ];
+      {/* Soft atmosphere that shifts with the active page */}
+      <LinearGradient
+        colors={[...page.glow.map((c) => `${c}22`), theme.colors.background]}
+        locations={[0, 0.45, 1]}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.orb,
+          {
+            backgroundColor: page.glow[1],
+            opacity: 0.16,
+            transform: [{ translateY: floatY }],
+          },
+        ]}
+      />
 
-          const imageTranslate = scrollX.interpolate({
-            inputRange,
-            outputRange: [width * 0.25, 0, -width * 0.25],
-          });
-          const imageScale = scrollX.interpolate({
-            inputRange,
-            outputRange: [0.85, 1, 0.85],
-          });
-          const textOpacity = scrollX.interpolate({
-            inputRange,
-            outputRange: [0, 1, 0],
-          });
-          const textTranslate = scrollX.interpolate({
-            inputRange,
-            outputRange: [24, 0, 24],
-          });
+      <Animated.View
+        style={[
+          styles.safe,
+          {
+            paddingTop: insets.top + 8,
+            paddingBottom: Math.max(insets.bottom, 12),
+            opacity: screenOpacity,
+            transform: [{ translateY: screenLift }],
+          },
+        ]}
+      >
+        <View style={styles.topRow}>
+          <View style={styles.brandRow}>
+            <BrandMark size={34} />
+            <Text style={[styles.brandWord, { color: theme.colors.text }]}>Quibet</Text>
+          </View>
+          <Pressable onPress={completeOnboarding} hitSlop={14} style={styles.skipHit}>
+            <Text style={[styles.skip, { color: theme.colors.textSecondary }]}>Skip</Text>
+          </Pressable>
+        </View>
 
-          return (
-            <View style={[styles.page, { width }]}>
-              <Animated.View
+        <Animated.FlatList
+          ref={listRef}
+          style={styles.pager}
+          data={PAGES}
+          keyExtractor={(item) => item.key}
+          horizontal
+          pagingEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
+            useNativeDriver: true,
+          })}
+          onMomentumScrollEnd={(event) => {
+            setIndex(Math.round(event.nativeEvent.contentOffset.x / SCREEN_W));
+          }}
+          getItemLayout={(_, i) => ({
+            length: SCREEN_W,
+            offset: SCREEN_W * i,
+            index: i,
+          })}
+          renderItem={({ item, index: pageIndex }) => {
+            const inputRange = [
+              (pageIndex - 1) * SCREEN_W,
+              pageIndex * SCREEN_W,
+              (pageIndex + 1) * SCREEN_W,
+            ];
+
+            const imageScale = scrollX.interpolate({
+              inputRange,
+              outputRange: [1.08, 1, 1.08],
+              extrapolate: 'clamp',
+            });
+            const imageShift = scrollX.interpolate({
+              inputRange,
+              outputRange: [SCREEN_W * 0.12, 0, -SCREEN_W * 0.12],
+              extrapolate: 'clamp',
+            });
+            const copyOpacity = scrollX.interpolate({
+              inputRange,
+              outputRange: [0, 1, 0],
+              extrapolate: 'clamp',
+            });
+            const copyY = scrollX.interpolate({
+              inputRange,
+              outputRange: [28, 0, 28],
+              extrapolate: 'clamp',
+            });
+
+            return (
+              <View style={[styles.page, { width: SCREEN_W }]}>
+                <View style={styles.hero}>
+                  <Animated.View
+                    style={[
+                      styles.heroArt,
+                      {
+                        transform: [{ translateX: imageShift }, { scale: imageScale }],
+                      },
+                    ]}
+                  >
+                    <Image source={item.image} style={styles.heroImage} resizeMode="cover" />
+                  </Animated.View>
+                  <LinearGradient
+                    colors={[
+                      'transparent',
+                      theme.mode === 'dark' ? 'rgba(20,22,26,0.55)' : 'rgba(244,246,249,0.55)',
+                      theme.colors.background,
+                    ]}
+                    locations={[0.35, 0.72, 1]}
+                    style={styles.heroFade}
+                  />
+                </View>
+
+                <Animated.View
+                  style={[
+                    styles.copy,
+                    { opacity: copyOpacity, transform: [{ translateY: copyY }] },
+                  ]}
+                >
+                  <Text style={[styles.kicker, { color: theme.colors.secondary }]}>
+                    {item.kicker}
+                  </Text>
+                  <Text style={[styles.title, { color: theme.colors.text }]}>{item.title}</Text>
+                  <Text style={[styles.body, { color: theme.colors.textSecondary }]}>
+                    {item.body}
+                  </Text>
+                </Animated.View>
+              </View>
+            );
+          }}
+        />
+
+        <View style={styles.footer}>
+          <View style={styles.progressRow}>
+            <Text style={[styles.stepLabel, { color: theme.colors.textMuted }]}>
+              {String(index + 1).padStart(2, '0')}
+              <Text style={{ color: theme.colors.textSecondary }}>
+                {'  /  '}
+                {String(PAGES.length).padStart(2, '0')}
+              </Text>
+            </Text>
+            <View style={styles.dots}>
+              {PAGES.map((p, pageIndex) => {
+                const inputRange = [
+                  (pageIndex - 1) * SCREEN_W,
+                  pageIndex * SCREEN_W,
+                  (pageIndex + 1) * SCREEN_W,
+                ];
+                const dotWidth = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [8, 28, 8],
+                  extrapolate: 'clamp',
+                });
+                const dotOpacity = scrollX.interpolate({
+                  inputRange,
+                  outputRange: [0.28, 1, 0.28],
+                  extrapolate: 'clamp',
+                });
+
+                return (
+                  <Animated.View
+                    key={p.key}
+                    style={[
+                      styles.dot,
+                      {
+                        backgroundColor: theme.colors.primary,
+                        width: dotWidth,
+                        opacity: dotOpacity,
+                      },
+                    ]}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          <View style={styles.actions}>
+            {index > 0 ? (
+              <Pressable
+                onPress={goBack}
                 style={[
-                  styles.imageCard,
-                  theme.elevation.card,
+                  styles.backBtn,
                   {
-                    borderRadius: theme.radii.lg + 8,
-                    transform: [{ translateX: imageTranslate }, { scale: imageScale }],
+                    borderColor: theme.colors.border,
+                    backgroundColor: theme.colors.surface,
                   },
                 ]}
               >
-                {/* Slightly over-scaled to crop the image's own baked-in corners */}
-                <Image source={item.image} style={styles.image} resizeMode="cover" />
-              </Animated.View>
-
-              <Animated.View
-                style={[
-                  styles.textBlock,
-                  { opacity: textOpacity, transform: [{ translateY: textTranslate }] },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.tag,
-                    {
-                      backgroundColor: accentMuted(item),
-                      borderRadius: theme.radii.pill,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      theme.typography.caption,
-                      { color: accentColor(item), fontWeight: '700' },
-                    ]}
-                  >
-                    {item.tag}
-                  </Text>
-                </View>
-                <Text
-                  style={[
-                    theme.typography.title,
-                    styles.title,
-                    { color: theme.colors.text },
-                  ]}
-                >
-                  {item.title}
-                </Text>
-                <Text
-                  style={[
-                    theme.typography.body,
-                    styles.body,
-                    { color: theme.colors.textSecondary },
-                  ]}
-                >
-                  {item.body}
-                </Text>
-              </Animated.View>
-            </View>
-          );
-        }}
-      />
-
-      <View style={styles.dots}>
-        {PAGES.map((page, pageIndex) => {
-          const inputRange = [
-            (pageIndex - 1) * width,
-            pageIndex * width,
-            (pageIndex + 1) * width,
-          ];
-          const dotWidth = scrollX.interpolate({
-            inputRange,
-            outputRange: [8, 26, 8],
-            extrapolate: 'clamp',
-          });
-          const dotOpacity = scrollX.interpolate({
-            inputRange,
-            outputRange: [0.35, 1, 0.35],
-            extrapolate: 'clamp',
-          });
-
-          return (
-            <Animated.View
-              key={page.key}
-              style={[
-                styles.dot,
-                {
-                  backgroundColor: theme.colors.primary,
-                  width: dotWidth,
-                  opacity: dotOpacity,
-                },
-              ]}
+                <Text style={[styles.backLabel, { color: theme.colors.text }]}>Back</Text>
+              </Pressable>
+            ) : (
+              <View style={styles.backSpacer} />
+            )}
+            <Button
+              label={isLast ? 'Get started' : 'Continue'}
+              onPress={goNext}
+              icon={isLast ? 'arrow-forward' : undefined}
+              style={styles.primaryBtn}
             />
-          );
-        })}
-      </View>
-
-      <View style={styles.actions}>
-        <Button label={isLast ? 'Get started' : 'Continue'} onPress={goNext} />
-      </View>
-    </Screen>
+          </View>
+        </View>
+      </Animated.View>
+    </View>
   );
 }
 
-const IMAGE_SIZE = Math.min(width - 88, 340);
-
 const styles = StyleSheet.create({
-  screen: {
-    paddingHorizontal: 0,
-    justifyContent: 'space-between',
+  root: {
+    flex: 1,
+  },
+  safe: {
+    flex: 1,
+  },
+  orb: {
+    position: 'absolute',
+    width: SCREEN_W * 0.9,
+    height: SCREEN_W * 0.9,
+    borderRadius: SCREEN_W,
+    top: -SCREEN_W * 0.18,
+    alignSelf: 'center',
+    left: SCREEN_W * 0.05,
   },
   topRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    marginBottom: 4,
+    justifyContent: 'space-between',
+    paddingHorizontal: 22,
+    zIndex: 2,
+  },
+  brandRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  brandWord: {
+    fontSize: 22,
+    lineHeight: 26,
+    fontWeight: '800',
+    letterSpacing: -0.6,
+  },
+  skipHit: {
+    paddingVertical: 8,
+    paddingHorizontal: 4,
+  },
+  skip: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  pager: {
+    flex: 1,
   },
   page: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    alignItems: 'center',
+    flex: 1,
   },
-  imageCard: {
-    width: IMAGE_SIZE,
-    height: IMAGE_SIZE,
+  hero: {
+    height: HERO_H,
+    width: SCREEN_W,
     overflow: 'hidden',
   },
-  image: {
-    width: IMAGE_SIZE * 1.12,
-    height: IMAGE_SIZE * 1.12,
-    marginLeft: -IMAGE_SIZE * 0.06,
-    marginTop: -IMAGE_SIZE * 0.06,
+  heroArt: {
+    ...StyleSheet.absoluteFillObject,
   },
-  textBlock: {
-    alignSelf: 'stretch',
-    alignItems: 'flex-start',
-    marginTop: 28,
+  heroImage: {
+    width: '100%',
+    height: '108%',
+    marginTop: -HERO_H * 0.02,
   },
-  tag: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
+  heroFade: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  copy: {
+    paddingHorizontal: 28,
+    marginTop: -28,
+  },
+  kicker: {
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
   title: {
-    marginTop: 14,
+    fontSize: 30,
+    lineHeight: 36,
+    fontWeight: '800',
+    letterSpacing: -0.7,
   },
   body: {
-    marginTop: 10,
+    marginTop: 12,
+    fontSize: 16,
+    lineHeight: 24,
+    fontWeight: '400',
+    maxWidth: 360,
+  },
+  footer: {
+    paddingHorizontal: 22,
+    marginTop: 'auto',
+    gap: 18,
+    paddingTop: 8,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  stepLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.6,
   },
   dots: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 20,
+    gap: 7,
   },
   dot: {
-    height: 8,
+    height: 7,
     borderRadius: 999,
   },
   actions: {
-    paddingHorizontal: 24,
-    paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  backBtn: {
+    minHeight: 48,
+    minWidth: 88,
+    paddingHorizontal: 18,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backLabel: {
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  backSpacer: {
+    width: 0,
+  },
+  primaryBtn: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 16,
   },
 });

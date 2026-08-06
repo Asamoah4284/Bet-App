@@ -144,7 +144,7 @@ export function DailyReflectionScreen({ navigation, route }) {
       <View style={styles.reassurance}>
         <Ionicons name="lock-closed-outline" size={15} color={theme.colors.textSecondary} />
         <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, flex: 1 }]}>
-          Betapp cannot monitor gambling activity. Your streak is based on the days you personally
+          Quibet cannot monitor gambling activity. Your streak is based on the days you personally
           confirm.
         </Text>
       </View>

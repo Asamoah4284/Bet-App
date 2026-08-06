@@ -5,11 +5,13 @@ import { StatusBar } from 'expo-status-bar';
 import { createNavigationTheme, useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { useOnboardingStore } from '../store/onboardingStore';
+import { selectIsPremium, useSubscriptionStore } from '../store/subscriptionStore';
 import { SplashScreen } from '../screens/SplashScreen';
 import { OnboardingScreen } from '../screens/OnboardingScreen';
 import { LoginScreen } from '../screens/LoginScreen';
 import { SignupScreen } from '../screens/SignupScreen';
 import { ForgotPasswordScreen } from '../screens/ForgotPasswordScreen';
+import { PaywallScreen } from '../screens/PaywallScreen';
 import { MainTabs } from './MainTabs';
 import { LogUrgeScreen } from '../screens/LogUrgeScreen';
 import { JournalEntryScreen } from '../screens/JournalEntryScreen';
@@ -39,7 +41,7 @@ import { AchievementAlertBridge } from '../components/AchievementAlertBridge';
 
 const Stack = createStackNavigator();
 const linking = {
-  prefixes: ['betapp://'],
+  prefixes: ['quibet://', 'betapp://'],
   config: {
     screens: {
       BuddyInvite: 'buddy/:buddyCode',
@@ -65,6 +67,7 @@ export function RootNavigator({ bootstrapping }) {
   const navigationTheme = createNavigationTheme(theme);
   const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
   const user = useAuthStore((state) => state.user);
+  const isPremium = useSubscriptionStore(selectIsPremium);
   const screenOptions = createSlideScreenOptions(theme.colors.background);
   const modalOptions = createSlideModalOptions(theme.colors.background);
 
@@ -78,7 +81,7 @@ export function RootNavigator({ bootstrapping }) {
   if (bootstrapping) {
     return (
       <>
-        <StatusBar style="light" />
+        <StatusBar style={theme.colors.statusBar} />
         <SplashScreen />
       </>
     );
@@ -92,6 +95,12 @@ export function RootNavigator({ bootstrapping }) {
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         ) : !user ? (
           <Stack.Screen name="Auth" component={AuthStack} />
+        ) : !isPremium ? (
+          <>
+            <Stack.Screen name="Paywall" component={PaywallScreen} />
+            <Stack.Screen name="PaywallSupport" component={SupportScreen} />
+            <Stack.Screen name="PaywallPrivacy" component={PrivacyScreen} />
+          </>
         ) : (
           <>
             <Stack.Screen name="Main" component={MainTabs} />
