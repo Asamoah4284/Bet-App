@@ -61,6 +61,7 @@ export function StreakDetailScreen({ navigation }) {
   const yesterdayKey = useHabitStore((state) => state.yesterdayKey);
   const todayReflection = useHabitStore((state) => state.todayReflection);
   const yesterdayReflection = useHabitStore((state) => state.yesterdayReflection);
+  const streakCatchUpExpired = useHabitStore((state) => state.streakCatchUpExpired);
   const refresh = useHabitStore((state) => state.refresh);
   const urges = useHabitStore((state) => state.urges);
   const journalEntries = useHabitStore((state) => state.journalEntries);
@@ -258,7 +259,15 @@ export function StreakDetailScreen({ navigation }) {
         onPress={() => navigation.navigate('DailyReflection', { dayKey: todayKey })}
         style={styles.primaryAction}
       />
-      {!yesterdayReflection && yesterdayKey ? (
+      {streakCatchUpExpired ? (
+        <View style={[styles.catchUp, { backgroundColor: theme.colors.warningMuted }]}>
+          <Ionicons name="refresh-outline" size={16} color={theme.colors.danger} />
+          <Text style={[styles.catchUpText, { color: theme.colors.danger, flex: 1 }]}>
+            Streak reset — more than one day passed without a check-in. Reflect today to start again
+            at 1.
+          </Text>
+        </View>
+      ) : !yesterdayReflection && yesterdayKey ? (
         <Pressable
           accessibilityRole="button"
           onPress={() => navigation.navigate('DailyReflection', { dayKey: yesterdayKey })}
@@ -339,7 +348,7 @@ export function StreakDetailScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     paddingTop: 4,
-    paddingBottom: 36,
+    paddingBottom: 12,
   },
   hero: {
     borderRadius: 18,

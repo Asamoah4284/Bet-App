@@ -155,3 +155,15 @@ export const profileApi = {
 export const shieldApi = {
   targets: (token) => apiRequest('/api/shield/targets', { token }),
 };
+
+export const notificationsApi = {
+  getPrefs: (token) => apiRequest('/api/notifications/prefs', { token }),
+  updatePrefs: (token, prefs) =>
+    apiRequest('/api/notifications/prefs', { method: 'PUT', body: prefs, token }),
+  registerDevice: (token, device) =>
+    apiRequest('/api/notifications/devices', { method: 'POST', body: device, token }),
+  unregisterDevice: (token, device) =>
+    apiRequest('/api/notifications/devices', { method: 'DELETE', body: device, token }),
+  scheduleUrgeFollowup: (token) =>
+    apiRequest('/api/notifications/urge-followup', { method: 'POST', token }),
+};

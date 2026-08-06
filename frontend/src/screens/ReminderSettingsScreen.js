@@ -1,10 +1,11 @@
 import { useCallback, useEffect } from 'react';
-import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen } from '../components/Screen';
 import { Card } from '../components/Card';
 import { BackHeader } from '../components/BackHeader';
+import { Button } from '../components/Button';
 import { useTheme } from '../theme';
 import { useReminderStore } from '../store/reminderStore';
 import { formatTime } from '../services/notifications';
@@ -56,11 +57,27 @@ function TimeStepper({ hour, minute, onChange, disabled }) {
   );
 }
 
+function ToggleRow({ label, value, onValueChange }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.toggleRow}>
+      <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>{label}</Text>
+      <Switch
+        value={value}
+        onValueChange={onValueChange}
+        trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
+        thumbColor={theme.colors.surface}
+      />
+    </View>
+  );
+}
+
 export function ReminderSettingsScreen() {
   const theme = useTheme();
   const settings = useReminderStore((state) => state.settings);
   const hydrated = useReminderStore((state) => state.hydrated);
   const permissionDenied = useReminderStore((state) => state.permissionDenied);
+  const serverOwnsDailies = useReminderStore((state) => state.serverOwnsDailies);
   const hydrate = useReminderStore((state) => state.hydrate);
   const update = useReminderStore((state) => state.update);
 
@@ -86,26 +103,21 @@ export function ReminderSettingsScreen() {
       </Text>
 
       {permissionDenied ? (
-        <Card style={{ borderColor: theme.colors.danger }}>
-          <Text style={[theme.typography.body, { color: theme.colors.danger }]}>
+        <Card style={{ borderColor: theme.colors.danger, marginBottom: 12 }}>
+          <Text style={[theme.typography.body, { color: theme.colors.danger, marginBottom: 12 }]}>
             Notifications are turned off for Betapp. Enable them in your device settings to receive
             reminders.
           </Text>
+          <Button label="Open device settings" onPress={() => Linking.openSettings()} />
         </Card>
       ) : null}
 
       <Card title="Daily reflection reminder">
-        <View style={styles.toggleRow}>
-          <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>
-            Remind me to confirm whether I stayed gambling-free
-          </Text>
-          <Switch
-            value={settings.checkinEnabled}
-            onValueChange={(value) => update({ checkinEnabled: value })}
-            trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
-            thumbColor={theme.colors.surface}
-          />
-        </View>
+        <ToggleRow
+          label="Remind me to confirm whether I stayed gambling-free"
+          value={settings.checkinEnabled}
+          onValueChange={(value) => update({ checkinEnabled: value })}
+        />
         <TimeStepper
           hour={settings.checkinHour}
           minute={settings.checkinMinute}
@@ -115,17 +127,11 @@ export function ReminderSettingsScreen() {
       </Card>
 
       <Card title="Daily encouragement">
-        <View style={styles.toggleRow}>
-          <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>
-            Send me a supportive note each day
-          </Text>
-          <Switch
-            value={settings.encouragementEnabled}
-            onValueChange={(value) => update({ encouragementEnabled: value })}
-            trackColor={{ true: theme.colors.primary, false: theme.colors.border }}
-            thumbColor={theme.colors.surface}
-          />
-        </View>
+        <ToggleRow
+          label="Send me a supportive note each day"
+          value={settings.encouragementEnabled}
+          onValueChange={(value) => update({ encouragementEnabled: value })}
+        />
         <TimeStepper
           hour={settings.encouragementHour}
           minute={settings.encouragementMinute}
@@ -136,8 +142,28 @@ export function ReminderSettingsScreen() {
         />
       </Card>
 
+      <Card title="Other nudges">
+        <ToggleRow
+          label="Buddy requests, accepts, and check-ins"
+          value={settings.buddyEventsEnabled}
+          onValueChange={(value) => update({ buddyEventsEnabled: value })}
+        />
+        <ToggleRow
+          label="Streak milestone celebrations"
+          value={settings.streakMilestonesEnabled}
+          onValueChange={(value) => update({ streakMilestonesEnabled: value })}
+        />
+        <ToggleRow
+          label="Gentle check-in after Urge SOS"
+          value={settings.urgeFollowupEnabled}
+          onValueChange={(value) => update({ urgeFollowupEnabled: value })}
+        />
+      </Card>
+
       <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, textAlign: 'center', marginBottom: 12 }]}>
-        Reminders are scheduled on this device only. They won't fire in the Expo Go simulator.
+        {serverOwnsDailies
+          ? 'Daily reminders are delivered by Betapp push while you are signed in. Event nudges also use push.'
+          : 'Daily reminders are scheduled on this device. Sign in on a development or production build for remote push delivery.'}
       </Text>
     </Screen>
   );
@@ -148,9 +174,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
+    marginBottom: 8,
   },
   stepperRow: {
-    marginTop: 16,
+    marginTop: 8,
     gap: 12,
   },
   stepperGroup: {

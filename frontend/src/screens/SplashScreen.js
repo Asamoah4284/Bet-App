@@ -28,13 +28,30 @@ export function SplashScreen() {
     <LinearGradient colors={theme.colors.splashGradient} style={styles.container}>
       <Animated.View style={{ opacity: fade, transform: [{ translateY: rise }] }}>
         <BrandMark size={92} />
-        <Text style={[styles.title, { color: theme.colors.textInverse }]}>Betapp</Text>
-        <Text style={[styles.subtitle, { color: theme.colors.textInverse }]}>
+        <Text
+          style={[
+            styles.title,
+            { color: theme.colors.textInverse, fontFamily: theme.fonts.display },
+          ]}
+        >
+          Betapp
+        </Text>
+        <Text
+          style={[
+            styles.subtitle,
+            { color: theme.colors.textInverse, fontFamily: theme.fonts.body },
+          ]}
+        >
           Quiet momentum for recovery
         </Text>
       </Animated.View>
       <View style={styles.footer}>
-        <Text style={[styles.footerText, { color: theme.colors.textInverse }]}>
+        <Text
+          style={[
+            styles.footerText,
+            { color: theme.colors.textInverse, fontFamily: theme.fonts.bodyMedium },
+          ]}
+        >
           Progress over perfection
         </Text>
       </View>
@@ -52,7 +69,6 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 18,
     fontSize: 30,
-    fontWeight: '800',
     textAlign: 'center',
     letterSpacing: -0.6,
   },
@@ -69,6 +85,5 @@ const styles = StyleSheet.create({
   footerText: {
     fontSize: 13,
     opacity: 0.8,
-    fontWeight: '500',
   },
 });

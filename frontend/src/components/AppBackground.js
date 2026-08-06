@@ -13,7 +13,7 @@ export function AppBackground() {
   const wash = theme.colors.canvasGradient;
   const orbPrimary = isDark ? 'rgba(143, 169, 199, 0.12)' : 'rgba(30, 58, 95, 0.07)';
   const orbTeal = isDark ? 'rgba(77, 184, 169, 0.10)' : 'rgba(42, 157, 143, 0.08)';
-  const orbSoft = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(245, 247, 250, 0.9)';
+  const orbSoft = isDark ? 'rgba(255, 255, 255, 0.03)' : 'rgba(245, 247, 250, 0.45)';
   const grid = isDark ? 'rgba(255, 255, 255, 0.035)' : 'rgba(30, 58, 95, 0.035)';
 
   return (
@@ -35,12 +35,12 @@ export function AppBackground() {
       <View style={[styles.rule, styles.ruleTop, { backgroundColor: grid }]} />
       <View style={[styles.rule, styles.ruleBottom, { backgroundColor: grid }]} />
 
-      {/* Soft bottom vignette so the tab bar area feels grounded */}
+      {/* Soft bottom vignette — keep short so it doesn’t fog the list above the tabs */}
       <LinearGradient
         colors={
           isDark
-            ? ['transparent', 'rgba(20, 22, 26, 0.55)']
-            : ['transparent', 'rgba(232, 236, 241, 0.55)']
+            ? ['transparent', 'rgba(20, 22, 26, 0.35)']
+            : ['transparent', 'rgba(232, 236, 241, 0.35)']
         }
         style={styles.bottomFade}
       />
@@ -88,6 +88,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 160,
+    height: 72,
   },
 });

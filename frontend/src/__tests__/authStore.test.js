@@ -25,6 +25,12 @@ jest.mock('../services/secureStorage', () => ({
   },
 }));
 
+jest.mock('../services/pushRegistration', () => ({
+  registerPushDevice: jest.fn(async () => null),
+  unregisterPushDevice: jest.fn(async () => undefined),
+  getCachedPushToken: jest.fn(() => null),
+}));
+
 describe('authStore', () => {
   beforeEach(() => {
     useAuthStore.setState({

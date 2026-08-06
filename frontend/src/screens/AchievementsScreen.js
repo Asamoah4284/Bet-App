@@ -92,7 +92,7 @@ function AchievementCard({ achievement }) {
           theme.typography.caption,
           {
             color: achievement.unlocked ? theme.colors.secondary : theme.colors.textSecondary,
-            fontWeight: achievement.unlocked ? '700' : '400',
+            fontFamily: achievement.unlocked ? theme.fonts.bodyBold : theme.fonts.body,
           },
         ]}
       >

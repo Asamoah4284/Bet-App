@@ -10,8 +10,28 @@ import {
   upsertJournalEntry,
 } from '../services/localDb';
 import { reflectionDayKeys } from '../services/reflections';
+import { profileApi } from '../services/api';
+import { useAuthStore } from './authStore';
+import { useFinanceStore } from './financeStore';
 
 const initialDays = reflectionDayKeys();
+
+async function syncRecoveryStatsIfSignedIn(state) {
+  const token = useAuthStore.getState().token;
+  if (!token) return;
+
+  const moneyKept = useFinanceStore.getState().summary?.moneyKept ?? 0;
+  try {
+    await profileApi.syncStats(token, {
+      streakDays: state.streakDays,
+      moneyKept,
+      urgesLogged: state.urges.length,
+      journalEntries: state.journalEntries.length,
+    });
+  } catch {
+    // Milestone pushes are best-effort.
+  }
+}
 
 export const useHabitStore = create((set, get) => ({
   urges: [],
@@ -23,6 +43,7 @@ export const useHabitStore = create((set, get) => ({
   yesterdayKey: initialDays.yesterday,
   todayReflection: null,
   yesterdayReflection: null,
+  streakCatchUpExpired: false,
   loading: false,
 
   refresh: async () => {
@@ -61,5 +82,6 @@ export const useHabitStore = create((set, get) => ({
   confirmReflection: async ({ dayKey, status }) => {
     await upsertDailyReflection({ dayKey, status });
     await get().refresh();
+    await syncRecoveryStatsIfSignedIn(get());
   },
 }));

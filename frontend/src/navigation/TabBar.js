@@ -1,6 +1,7 @@
 import { useContext, useEffect, useState } from 'react';
 import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomTabBarHeightCallbackContext } from '@react-navigation/bottom-tabs';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../theme';
@@ -14,7 +15,7 @@ const TABS = {
 };
 
 const FAB_SIZE = 56;
-/** How far the Money circle sits above the tab row. */
+/** How far the Money circle sits above the frosted bar. */
 const FAB_LIFT = 26;
 
 function SideTab({ label, icon, iconOutline, focused, onPress, onLongPress, colors }) {
@@ -52,7 +53,9 @@ function MoneyTab({ focused, onPress, onLongPress, colors }) {
           styles.fab,
           {
             backgroundColor: focused ? colors.secondary : colors.primary,
-            marginTop: -FAB_LIFT,
+            // Lift visually; collapse the leftover layout gap so the label sits close under it.
+            transform: [{ translateY: -FAB_LIFT }],
+            marginBottom: -FAB_LIFT,
           },
         ]}
       >
@@ -64,7 +67,7 @@ function MoneyTab({ focused, onPress, onLongPress, colors }) {
           {
             color: focused ? colors.primary : colors.textMuted,
             fontWeight: focused ? '700' : '500',
-            marginTop: 4,
+            marginTop: 2,
           },
         ]}
       >
@@ -74,12 +77,15 @@ function MoneyTab({ focused, onPress, onLongPress, colors }) {
   );
 }
 
-export function TabBar({ state, descriptors, navigation }) {
+export function TabBar({ state, descriptors, navigation, insets: navInsets }) {
   const theme = useTheme();
-  const insets = useSafeAreaInsets();
+  const isDark = theme.mode === 'dark';
+  const hookInsets = useSafeAreaInsets();
   const onHeightChange = useContext(BottomTabBarHeightCallbackContext);
   const [keyboardShown, setKeyboardShown] = useState(false);
-  const bottomPad = Math.max(insets.bottom, 8);
+  // Prefer navigator-provided insets — more reliable for custom tab bars.
+  const bottomInset = navInsets?.bottom ?? hookInsets.bottom ?? 0;
+  const bottomPad = Math.max(bottomInset, 10);
 
   useEffect(() => {
     const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
@@ -107,24 +113,36 @@ export function TabBar({ state, descriptors, navigation }) {
     }
   };
 
+  const hairline = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(60, 60, 67, 0.18)';
+  // Android blur is weaker — lean on a translucent surface; iOS wash stays very light.
+  const frostWash = isDark
+    ? Platform.OS === 'ios'
+      ? 'rgba(28, 31, 36, 0.28)'
+      : 'rgba(28, 31, 36, 0.92)'
+    : Platform.OS === 'ios'
+      ? 'rgba(249, 249, 249, 0.22)'
+      : 'rgba(249, 249, 249, 0.94)';
+  const blurTint = isDark ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight';
+
   return (
     <View
       pointerEvents="box-none"
       onLayout={(event) => onHeightChange?.(event.nativeEvent.layout.height)}
-      style={styles.wrap}
+      style={[styles.wrap, { paddingTop: FAB_LIFT }]}
     >
-      {/* Extra top space so the raised Money button isn’t clipped */}
-      <View style={{ height: FAB_LIFT }} pointerEvents="none" />
+      <View style={[styles.bar, { paddingBottom: bottomPad }]} pointerEvents="box-none">
+        {/* Frost clipped to bar only — kept separate so the raised FAB isn’t cut off */}
+        <View pointerEvents="none" style={styles.frostClip}>
+          <BlurView
+            intensity={Platform.OS === 'ios' ? 70 : 90}
+            tint={blurTint}
+            experimentalBlurMethod="dimezisBlurView"
+            style={StyleSheet.absoluteFill}
+          />
+          <View style={[styles.frostWash, { backgroundColor: frostWash }]} />
+          <View style={[styles.hairline, { backgroundColor: hairline }]} />
+        </View>
 
-      <View
-        style={[
-          styles.bar,
-          {
-            paddingBottom: bottomPad,
-            backgroundColor: 'transparent',
-          },
-        ]}
-      >
         <View style={styles.row}>
           {state.routes.map((route, index) => {
             const focused = state.index === index;
@@ -170,9 +188,33 @@ export function TabBar({ state, descriptors, navigation }) {
 
 const styles = StyleSheet.create({
   wrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
     backgroundColor: 'transparent',
+    overflow: 'visible',
+    zIndex: 10,
   },
-  bar: {},
+  bar: {
+    backgroundColor: 'transparent',
+    overflow: 'visible',
+  },
+  frostClip: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: 'hidden',
+    zIndex: 0,
+  },
+  frostWash: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  hairline: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: StyleSheet.hairlineWidth,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -180,6 +222,8 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingHorizontal: 4,
     minHeight: 56,
+    zIndex: 2,
+    elevation: 2,
   },
   tab: {
     flex: 1,
@@ -204,6 +248,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 2,
+    overflow: 'visible',
+    zIndex: 3,
   },
   fab: {
     width: FAB_SIZE,
@@ -211,5 +257,16 @@ const styles = StyleSheet.create({
     borderRadius: FAB_SIZE / 2,
     alignItems: 'center',
     justifyContent: 'center',
+    zIndex: 4,
+    elevation: 8,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#1E3A5F',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.22,
+        shadowRadius: 8,
+      },
+      default: {},
+    }),
   },
 });

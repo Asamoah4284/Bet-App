@@ -1,0 +1,52 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:1:1-20:12
+INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:1:1-20:12
+	package
+		INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.INTERNET
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:2:3-65
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:2:20-62
+uses-permission#android.permission.FOREGROUND_SERVICE
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:3:3-75
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:3:20-72
+uses-permission#android.permission.FOREGROUND_SERVICE_SPECIAL_USE
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:4:3-87
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:4:20-84
+application
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:6:3-19:17
+service#expo.modules.betappshield.BetappShieldVpnService
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:7:5-18:15
+	android:exported
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:9:7-31
+	android:permission
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:11:7-63
+	android:foregroundServiceType
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:10:7-49
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:8:7-45
+intent-filter#action:name:android.net.VpnService
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:12:7-14:23
+action#android.net.VpnService
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:13:9-57
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:13:17-54
+property#android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE
+ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:15:7-17:93
+	android:value
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:17:9-90
+	android:name
+		ADDED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml:16:9-68
+uses-sdk
+INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml
+INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\Users\stepp\Downloads\Programs\Bet-App\frontend\modules\betapp-shield\android\src\main\AndroidManifest.xml

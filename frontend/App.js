@@ -1,12 +1,24 @@
 import 'react-native-gesture-handler';
 import { useEffect, useState } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
+import {
+  Inter_400Regular,
+  Inter_500Medium,
+  Inter_600SemiBold,
+  Inter_700Bold,
+} from '@expo-google-fonts/inter';
+import {
+  Montserrat_500Medium,
+  Montserrat_600SemiBold,
+  Montserrat_700Bold,
+} from '@expo-google-fonts/montserrat';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ThemeProvider } from './src/theme';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { useThemeStore } from './src/store/themeStore';
 import { useOnboardingStore } from './src/store/onboardingStore';
-import { useAuthStore } from './src/store/authStore';
+import { setAuthSessionListener, useAuthStore } from './src/store/authStore';
 import { useReminderStore } from './src/store/reminderStore';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -15,6 +27,16 @@ SplashScreen.setOptions({ duration: 400, fade: true });
 const MIN_BRANDED_SPLASH_MS = 2800;
 
 export default function App() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    Montserrat_500Medium,
+    Montserrat_600SemiBold,
+    Montserrat_700Bold,
+  });
+
   const hydrateTheme = useThemeStore((state) => state.hydrate);
   const hydrateOnboarding = useOnboardingStore((state) => state.hydrate);
   const bootstrapAuth = useAuthStore((state) => state.bootstrap);
@@ -26,18 +48,25 @@ export default function App() {
   const [nativeSplashHidden, setNativeSplashHidden] = useState(false);
 
   useEffect(() => {
+    setAuthSessionListener(() => {
+      useReminderStore.getState().hydrate();
+    });
+    return () => setAuthSessionListener(null);
+  }, []);
+
+  useEffect(() => {
     hydrateTheme();
   }, [hydrateTheme]);
 
   useEffect(() => {
-    if (!themeHydrated || nativeSplashHidden) {
+    if (!themeHydrated || !fontsLoaded || nativeSplashHidden) {
       return;
     }
 
     SplashScreen.hideAsync()
       .catch(() => {})
       .finally(() => setNativeSplashHidden(true));
-  }, [themeHydrated, nativeSplashHidden]);
+  }, [themeHydrated, fontsLoaded, nativeSplashHidden]);
 
   useEffect(() => {
     if (!nativeSplashHidden) {
@@ -48,7 +77,9 @@ export default function App() {
     const startedAt = Date.now();
 
     async function finishBootstrap() {
-      await Promise.all([hydrateOnboarding(), bootstrapAuth(), hydrateReminders()]);
+      await Promise.all([hydrateOnboarding(), bootstrapAuth()]);
+      // Reminders need auth token (if any) so push vs local ownership is correct.
+      await hydrateReminders();
       const remaining = Math.max(0, MIN_BRANDED_SPLASH_MS - (Date.now() - startedAt));
       await new Promise((resolve) => setTimeout(resolve, remaining));
 
@@ -65,6 +96,7 @@ export default function App() {
   }, [nativeSplashHidden, hydrateOnboarding, bootstrapAuth, hydrateReminders]);
 
   const bootstrapping =
+    !fontsLoaded ||
     !themeHydrated ||
     !nativeSplashHidden ||
     !onboardingHydrated ||

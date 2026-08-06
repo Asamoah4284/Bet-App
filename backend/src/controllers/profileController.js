@@ -83,6 +83,10 @@ async function updateProfile(req, res, next) {
 async function syncRecoveryStats(req, res, next) {
   try {
     const number = (value, minimum = 0) => Math.max(minimum, Number(value) || 0);
+    const user = await User.findById(req.userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const previousStreak = user.recovery_stats?.streak_days || 0;
     const stats = {
       streak_days: Math.floor(number(req.body.streakDays)),
       money_kept: number(req.body.moneyKept, -Number.MAX_SAFE_INTEGER),
@@ -91,7 +95,25 @@ async function syncRecoveryStats(req, res, next) {
       updated_at: new Date(),
     };
 
-    await User.findByIdAndUpdate(req.userId, { recovery_stats: stats });
+    user.recovery_stats = stats;
+    await user.save();
+
+    const { crossedMilestones } = require('../services/notificationHelpers');
+    const milestones = crossedMilestones(previousStreak, stats.streak_days);
+    if (
+      milestones.length > 0 &&
+      user.notification_prefs?.streakMilestonesEnabled !== false
+    ) {
+      const { sendPushToUsers } = require('../services/pushService');
+      const milestone = milestones[milestones.length - 1];
+      sendPushToUsers(user._id, {
+        title: `${milestone}-day streak`,
+        body: `You have reached ${milestone} gambling-free days. That commitment matters.`,
+        data: { type: 'streak_milestone', screen: 'StreakDetail', milestone },
+        channelId: 'milestones',
+      }).catch((err) => console.error('Milestone push failed:', err.message));
+    }
+
     res.json({ message: 'Recovery stats synced' });
   } catch (err) {
     next(err);

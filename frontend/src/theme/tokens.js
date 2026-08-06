@@ -14,38 +14,51 @@ export const radii = {
   pill: 999,
 };
 
+/** Loaded via expo-font / @expo-google-fonts — family names encode weight for Android. */
+export const fonts = {
+  display: 'Montserrat_700Bold',
+  displaySemiBold: 'Montserrat_600SemiBold',
+  heading: 'Montserrat_700Bold',
+  headingSemiBold: 'Montserrat_600SemiBold',
+  headingMedium: 'Montserrat_500Medium',
+  body: 'Inter_400Regular',
+  bodyMedium: 'Inter_500Medium',
+  bodySemiBold: 'Inter_600SemiBold',
+  bodyBold: 'Inter_700Bold',
+};
+
 export const typography = {
   display: {
+    fontFamily: fonts.display,
     fontSize: 28,
     lineHeight: 34,
-    fontWeight: '700',
     letterSpacing: -0.4,
   },
   title: {
+    fontFamily: fonts.heading,
     fontSize: 22,
     lineHeight: 28,
-    fontWeight: '700',
     letterSpacing: -0.25,
   },
   subtitle: {
+    fontFamily: fonts.headingSemiBold,
     fontSize: 16,
     lineHeight: 22,
-    fontWeight: '600',
   },
   body: {
+    fontFamily: fonts.body,
     fontSize: 14,
     lineHeight: 21,
-    fontWeight: '400',
   },
   caption: {
+    fontFamily: fonts.bodyMedium,
     fontSize: 12,
     lineHeight: 16,
-    fontWeight: '500',
   },
   button: {
+    fontFamily: fonts.bodyBold,
     fontSize: 14,
     lineHeight: 18,
-    fontWeight: '700',
   },
 };
 

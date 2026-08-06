@@ -1,5 +1,6 @@
 const Checkin = require('../models/Checkin');
 const User = require('../models/User');
+const BuddyLink = require('../models/BuddyLink');
 const { isBuddyWith } = require('./buddyController');
 
 function serializeCheckin(checkin) {
@@ -28,6 +29,24 @@ async function createCheckin(req, res, next) {
       streak_days: Number.isFinite(streakDays) ? streakDays : 0,
       money_saved: Number.isFinite(moneySaved) ? moneySaved : 0,
     });
+
+    const author = await User.findById(req.userId).select('display_name');
+    const links = await BuddyLink.find({
+      status: 'accepted',
+      $or: [{ requester: req.userId }, { receiver: req.userId }],
+    });
+    const { notifyUser } = require('./notificationController');
+    for (const link of links) {
+      const buddyId =
+        String(link.requester) === String(req.userId) ? link.receiver : link.requester;
+      notifyUser(buddyId, {
+        title: 'Buddy check-in',
+        body: `${author?.display_name || 'Your buddy'} shared a check-in.`,
+        data: { type: 'buddy_checkin', screen: 'Buddies' },
+        channelId: 'social',
+        requireBuddyEvents: true,
+      });
+    }
 
     res.status(201).json({ checkin: serializeCheckin(checkin) });
   } catch (err) {

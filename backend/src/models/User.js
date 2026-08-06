@@ -1,5 +1,32 @@
 const mongoose = require('mongoose');
 
+const pushTokenSchema = new mongoose.Schema(
+  {
+    token: { type: String, required: true },
+    platform: { type: String, enum: ['ios', 'android', 'unknown'], default: 'unknown' },
+    updated_at: { type: Date, default: Date.now },
+  },
+  { _id: false }
+);
+
+const notificationPrefsSchema = new mongoose.Schema(
+  {
+    checkinEnabled: { type: Boolean, default: false },
+    checkinHour: { type: Number, default: 20, min: 0, max: 23 },
+    checkinMinute: { type: Number, default: 0, min: 0, max: 59 },
+    encouragementEnabled: { type: Boolean, default: false },
+    encouragementHour: { type: Number, default: 9, min: 0, max: 23 },
+    encouragementMinute: { type: Number, default: 0, min: 0, max: 59 },
+    buddyEventsEnabled: { type: Boolean, default: true },
+    streakMilestonesEnabled: { type: Boolean, default: true },
+    urgeFollowupEnabled: { type: Boolean, default: true },
+    timezone: { type: String, default: 'Africa/Accra', trim: true },
+    last_checkin_push_local_date: { type: String, default: null },
+    last_encouragement_push_local_date: { type: String, default: null },
+  },
+  { _id: false }
+);
+
 const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
   username: {
@@ -28,6 +55,8 @@ const userSchema = new mongoose.Schema({
     journal_entries: { type: Number, default: 0, min: 0 },
     updated_at: { type: Date, default: null },
   },
+  notification_prefs: { type: notificationPrefsSchema, default: () => ({}) },
+  push_tokens: { type: [pushTokenSchema], default: [] },
   buddy_code: { type: String, required: true, unique: true },
   reset_code_hash: { type: String, default: null },
   reset_code_expires: { type: Date, default: null },

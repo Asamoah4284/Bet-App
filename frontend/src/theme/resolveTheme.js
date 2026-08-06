@@ -1,5 +1,5 @@
 import { darkColors, lightColors } from './colors';
-import { elevation, radii, spacing, typography } from './tokens';
+import { elevation, fonts, radii, spacing, typography } from './tokens';
 
 export function resolveColorScheme(preference, systemScheme) {
   if (preference === 'light' || preference === 'dark') {
@@ -17,6 +17,7 @@ export function createTheme(colorScheme) {
     colors,
     spacing,
     radii,
+    fonts,
     typography,
     elevation,
   };

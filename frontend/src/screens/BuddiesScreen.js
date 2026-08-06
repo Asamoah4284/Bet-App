@@ -524,7 +524,7 @@ export function BuddiesScreen({ navigation }) {
 const styles = StyleSheet.create({
   screen: {
     paddingTop: 6,
-    paddingBottom: 36,
+    paddingBottom: 12,
   },
   topBar: {
     flexDirection: 'row',

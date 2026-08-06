@@ -9,6 +9,24 @@ jest.mock('../services/notifications', () => ({
   ensurePermissions: jest.fn(),
   syncReminders: jest.fn(),
   cancelAllReminders: jest.fn(),
+  getDeviceTimezone: jest.fn(() => 'Africa/Accra'),
+}));
+
+jest.mock('../services/pushRegistration', () => ({
+  getCachedPushToken: jest.fn(() => null),
+  registerPushDevice: jest.fn(async () => null),
+}));
+
+jest.mock('../services/api', () => ({
+  notificationsApi: {
+    updatePrefs: jest.fn(),
+  },
+}));
+
+jest.mock('../store/authStore', () => ({
+  useAuthStore: {
+    getState: () => ({ token: null }),
+  },
 }));
 
 describe('parseReminderSettings', () => {
@@ -25,6 +43,10 @@ describe('parseReminderSettings', () => {
       encouragementEnabled: 0,
       encouragementHour: 21,
       encouragementMinute: 45,
+      buddyEventsEnabled: 0,
+      streakMilestonesEnabled: 1,
+      urgeFollowupEnabled: 0,
+      timezone: 'Europe/London',
     });
 
     expect(parseReminderSettings(value)).toEqual({
@@ -34,7 +56,24 @@ describe('parseReminderSettings', () => {
       encouragementEnabled: false,
       encouragementHour: 21,
       encouragementMinute: 45,
+      buddyEventsEnabled: false,
+      streakMilestonesEnabled: true,
+      urgeFollowupEnabled: false,
+      timezone: 'Europe/London',
     });
+  });
+
+  it('defaults event toggles to on when omitted', () => {
+    const value = JSON.stringify({
+      checkinEnabled: true,
+      checkinHour: 8,
+      checkinMinute: 0,
+    });
+
+    const result = parseReminderSettings(value);
+    expect(result.buddyEventsEnabled).toBe(true);
+    expect(result.streakMilestonesEnabled).toBe(true);
+    expect(result.urgeFollowupEnabled).toBe(true);
   });
 
   it('clamps out-of-range times back to defaults', () => {

@@ -9,6 +9,7 @@ import { Button } from '../components/Button';
 import { useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import { useProfileStore } from '../store/profileStore';
+import { useToastStore } from '../store/toastStore';
 import { validateDisplayName, validateUsername } from '../utils/validation';
 
 export function EditProfileScreen() {
@@ -21,6 +22,7 @@ export function EditProfileScreen() {
   const avatarUri = useProfileStore((state) => state.avatarUri);
   const hydrateProfile = useProfileStore((state) => state.hydrate);
   const saveAvatar = useProfileStore((state) => state.saveAvatar);
+  const showToast = useToastStore((state) => state.show);
 
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [username, setUsername] = useState(user?.username || '');
@@ -31,6 +33,12 @@ export function EditProfileScreen() {
   useEffect(() => {
     hydrateProfile();
   }, [hydrateProfile]);
+
+  useEffect(() => {
+    if (!saved) return undefined;
+    const timer = setTimeout(() => setSaved(false), 4500);
+    return () => clearTimeout(timer);
+  }, [saved]);
 
   const choosePhoto = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -67,6 +75,12 @@ export function EditProfileScreen() {
         bio: bio.trim(),
       });
       setSaved(true);
+      showToast({
+        title: 'Profile updated',
+        body: 'Your changes have been saved.',
+        icon: 'checkmark-circle',
+        tint: 'success',
+      });
     } catch {
       // Store displays the API error.
     }
@@ -150,15 +164,49 @@ export function EditProfileScreen() {
         ) : null}
 
         {apiError ? (
-          <Text style={[theme.typography.caption, styles.message, { color: theme.colors.danger }]}>
-            {apiError}
-          </Text>
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor: theme.colors.dangerMuted,
+                borderColor: theme.colors.danger,
+              },
+            ]}
+          >
+            <Ionicons name="alert-circle" size={20} color={theme.colors.danger} />
+            <Text style={[theme.typography.body, styles.statusText, { color: theme.colors.danger }]}>
+              {apiError}
+            </Text>
+          </View>
         ) : null}
+
         {saved ? (
-          <Text style={[theme.typography.caption, styles.message, { color: theme.colors.secondary }]}>
-            Profile updated.
-          </Text>
+          <View
+            style={[
+              styles.statusBanner,
+              {
+                backgroundColor: theme.colors.successMuted,
+                borderColor: theme.colors.success,
+              },
+            ]}
+          >
+            <Ionicons name="checkmark-circle" size={22} color={theme.colors.success} />
+            <View style={styles.statusCopy}>
+              <Text
+                style={[
+                  theme.typography.subtitle,
+                  { color: theme.colors.success, fontFamily: theme.fonts.bodyBold },
+                ]}
+              >
+                Profile updated
+              </Text>
+              <Text style={[theme.typography.caption, { color: theme.colors.textSecondary, marginTop: 2 }]}>
+                Your changes have been saved.
+              </Text>
+            </View>
+          </View>
         ) : null}
+
         <Button label="Save changes" onPress={save} loading={loading} style={styles.saveButton} />
       </View>
     </Screen>
@@ -215,8 +263,21 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-end',
     marginTop: 5,
   },
-  message: {
-    marginTop: 10,
+  statusBanner: {
+    marginTop: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+  },
+  statusCopy: {
+    flex: 1,
+  },
+  statusText: {
+    flex: 1,
   },
   saveButton: {
     marginTop: 18,

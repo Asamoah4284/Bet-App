@@ -1,6 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 import {
   calculateReflectionStreak,
+  isStreakCatchUpExpired,
   localDayKey,
   reflectionDayKeys,
 } from './reflections';
@@ -241,6 +242,7 @@ export async function getReflectionSummary() {
     todayReflection: reflections.find((item) => item.day_key === today) || null,
     yesterdayReflection: reflections.find((item) => item.day_key === yesterday) || null,
     streakDays: calculateReflectionStreak(reflections),
+    streakCatchUpExpired: isStreakCatchUpExpired(reflections),
   };
 }
 

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { StatusBar } from 'expo-status-bar';
@@ -28,6 +29,12 @@ import { SupportScreen } from '../screens/SupportScreen';
 import { DailyReflectionScreen } from '../screens/DailyReflectionScreen';
 import { ShieldScreen } from '../screens/ShieldScreen';
 import { createSlideModalOptions, createSlideScreenOptions } from './transitions';
+import {
+  attachNotificationListeners,
+  navigationRef,
+} from '../services/notificationRouting';
+import { ToastHost } from '../components/ToastHost';
+import { AchievementAlertBridge } from '../components/AchievementAlertBridge';
 
 const Stack = createStackNavigator();
 const linking = {
@@ -60,6 +67,13 @@ export function RootNavigator({ bootstrapping }) {
   const screenOptions = createSlideScreenOptions(theme.colors.background);
   const modalOptions = createSlideModalOptions(theme.colors.background);
 
+  useEffect(() => {
+    if (bootstrapping || !user) {
+      return undefined;
+    }
+    return attachNotificationListeners();
+  }, [bootstrapping, user]);
+
   if (bootstrapping) {
     return (
       <>
@@ -70,7 +84,7 @@ export function RootNavigator({ bootstrapping }) {
   }
 
   return (
-    <NavigationContainer theme={navigationTheme} linking={linking}>
+    <NavigationContainer ref={navigationRef} theme={navigationTheme} linking={linking}>
       <StatusBar style={theme.colors.statusBar} />
       <Stack.Navigator screenOptions={screenOptions}>
         {!hasCompletedOnboarding ? (
@@ -104,6 +118,8 @@ export function RootNavigator({ bootstrapping }) {
           <Stack.Screen name="BuddyInvite" component={BuddyInviteScreen} />
         ) : null}
       </Stack.Navigator>
+      {user ? <AchievementAlertBridge /> : null}
+      <ToastHost />
     </NavigationContainer>
   );
 }

@@ -1,5 +1,6 @@
 import {
   calculateReflectionStreak,
+  isStreakCatchUpExpired,
   localDayKey,
   reflectionDayKeys,
 } from '../services/reflections';
@@ -21,6 +22,11 @@ describe('daily reflection streaks', () => {
     expect(calculateReflectionStreak([row('2026-01-09'), row('2026-01-08')], now)).toBe(2);
   });
 
+  test('resets to 0 when today and yesterday are both unconfirmed', () => {
+    // Last clean day was 2+ calendar days ago — catch-up window expired.
+    expect(calculateReflectionStreak([row('2026-01-08'), row('2026-01-07')], now)).toBe(0);
+  });
+
   test('a confirmed slip today resets the current streak', () => {
     expect(
       calculateReflectionStreak([row('2026-01-10', 'slipped'), row('2026-01-09')], now)
@@ -36,6 +42,12 @@ describe('daily reflection streaks', () => {
     expect(
       calculateReflectionStreak([row('2025-12-31'), row('2025-12-30')], newYear)
     ).toBe(2);
+  });
+
+  test('flags catch-up expired when older cleans exist but yesterday is empty', () => {
+    expect(isStreakCatchUpExpired([row('2026-01-08'), row('2026-01-07')], now)).toBe(true);
+    expect(isStreakCatchUpExpired([row('2026-01-09'), row('2026-01-08')], now)).toBe(false);
+    expect(isStreakCatchUpExpired([row('2026-01-10')], now)).toBe(false);
   });
 
   test('uses local calendar arithmetic for yesterday', () => {

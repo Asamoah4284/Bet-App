@@ -8,6 +8,10 @@ import { Button } from '../components/Button';
 import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
 import { useSafetyPlanStore } from '../store/safetyPlanStore';
+import { useReminderStore } from '../store/reminderStore';
+import { useAuthStore } from '../store/authStore';
+import { notificationsApi } from '../services/api';
+import { scheduleUrgeFollowupLocal } from '../services/notifications';
 
 const SESSION_SECONDS = 60;
 
@@ -23,13 +27,39 @@ export function UrgeSOSScreen({ navigation }) {
   const reasons = useSafetyPlanStore((state) => state.reasons);
   const actions = useSafetyPlanStore((state) => state.actions);
   const ensureHydrated = useSafetyPlanStore((state) => state.ensureHydrated);
+  const urgeFollowupEnabled = useReminderStore((state) => state.settings.urgeFollowupEnabled);
+  const token = useAuthStore((state) => state.token);
   const [seconds, setSeconds] = useState(SESSION_SECONDS);
   const [running, setRunning] = useState(true);
   const breath = useRef(new Animated.Value(0)).current;
+  const followupScheduled = useRef(false);
 
   useEffect(() => {
     ensureHydrated();
   }, [ensureHydrated]);
+
+  useEffect(() => {
+    if (seconds > 0 || followupScheduled.current || !urgeFollowupEnabled) {
+      return;
+    }
+    followupScheduled.current = true;
+
+    async function scheduleFollowup() {
+      if (token) {
+        try {
+          const result = await notificationsApi.scheduleUrgeFollowup(token);
+          if (result?.scheduled) {
+            return;
+          }
+        } catch {
+          // Fall through to local schedule.
+        }
+      }
+      await scheduleUrgeFollowupLocal().catch(() => {});
+    }
+
+    scheduleFollowup();
+  }, [seconds, urgeFollowupEnabled, token]);
 
   useEffect(() => {
     if (!running || seconds <= 0) return undefined;

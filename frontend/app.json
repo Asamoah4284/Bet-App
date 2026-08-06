@@ -18,6 +18,7 @@
     },
     "android": {
       "package": "com.betapp.recovery",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "backgroundColor": "#1E3A5F",
         "foregroundImage": "./assets/android-icon-foreground.png",

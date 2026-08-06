@@ -5,6 +5,9 @@ node_modules/
 .env
 .env.local
 .env.*.local
+**/firebase-service-account.json
+**/bitbyte-*-firebase-adminsdk-*.json
+*firebase-adminsdk*.json
 
 # Logs & OS
 *.log
@@ -15,6 +18,10 @@ Thumbs.db
 .expo/
 dist/
 web-build/
+frontend/android/local.properties
+frontend/android/.gradle/
+frontend/android/app/build/
+frontend/android/build/
 
 # Local backups
 frontend-local-backup/

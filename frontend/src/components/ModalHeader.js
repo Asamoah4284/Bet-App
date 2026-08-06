@@ -22,7 +22,11 @@ export function ModalHeader({ kicker, title, subtitle, accent = 'primary' }) {
             <Text
               style={[
                 theme.typography.caption,
-                { color: theme.colors[accent], fontWeight: '700', letterSpacing: 1.1 },
+                {
+                  color: theme.colors[accent],
+                  fontFamily: theme.fonts.bodyBold,
+                  letterSpacing: 1.1,
+                },
               ]}
             >
               {kicker.toUpperCase()}

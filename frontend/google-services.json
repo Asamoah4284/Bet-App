@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "564469007711",
+    "project_id": "bitbyte-79a03",
+    "storage_bucket": "bitbyte-79a03.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564469007711:android:c325d9d68e55bf029962ea",
+        "android_client_info": {
+          "package_name": "com.betapp.recovery"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhV6R3tkY-Nva3BwgoEPkOL_c95CK9d5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:564469007711:android:86cd399aadc5fa9e9962ea",
+        "android_client_info": {
+          "package_name": "com.example.data_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhV6R3tkY-Nva3BwgoEPkOL_c95CK9d5c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -97,6 +97,16 @@ async function sendRequest(req, res, next) {
 
     await BuddyLink.create({ requester: req.userId, receiver: receiver._id });
 
+    const requester = await User.findById(req.userId).select('display_name');
+    const { notifyUser } = require('./notificationController');
+    notifyUser(receiver._id, {
+      title: 'New buddy request',
+      body: `${requester?.display_name || 'Someone'} wants to be your accountability buddy.`,
+      data: { type: 'buddy_request', screen: 'Buddies' },
+      channelId: 'social',
+      requireBuddyEvents: true,
+    });
+
     res.status(201).json({ message: `Buddy request sent to ${receiver.display_name}` });
   } catch (err) {
     next(err);
@@ -114,6 +124,17 @@ async function acceptRequest(req, res, next) {
     if (!link) {
       return res.status(404).json({ error: 'Buddy request not found' });
     }
+
+    const accepter = await User.findById(req.userId).select('display_name');
+    const { notifyUser } = require('./notificationController');
+    notifyUser(link.requester, {
+      title: 'Buddy request accepted',
+      body: `${accepter?.display_name || 'Your buddy'} accepted your request.`,
+      data: { type: 'buddy_accepted', screen: 'Buddies' },
+      channelId: 'social',
+      requireBuddyEvents: true,
+    });
+
     res.json({ message: 'Buddy request accepted' });
   } catch (err) {
     next(err);

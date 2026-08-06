@@ -21,13 +21,30 @@ function previousDayKey(dayKey) {
   return localDayKey(date);
 }
 
+/**
+ * Gambling-free streak from consecutive "clean" daily reflections.
+ *
+ * Rules:
+ * - Slip today → 0
+ * - One-day grace: if today is not confirmed yet, keep counting from yesterday
+ * - If BOTH today and yesterday are not clean, the catch-up window is gone → 0
+ *   (older clean days cannot keep a live streak)
+ */
 export function calculateReflectionStreak(reflections, now = new Date()) {
   const byDay = new Map(reflections.map((item) => [item.day_key, item.status]));
   const { today, yesterday } = reflectionDayKeys(now);
 
   if (byDay.get(today) === 'slipped') return 0;
 
-  let cursor = byDay.get(today) === 'clean' ? today : yesterday;
+  const todayClean = byDay.get(today) === 'clean';
+  const yesterdayClean = byDay.get(yesterday) === 'clean';
+
+  // Missed more than one day — streak cannot continue.
+  if (!todayClean && !yesterdayClean) {
+    return 0;
+  }
+
+  let cursor = todayClean ? today : yesterday;
   let streak = 0;
 
   while (byDay.get(cursor) === 'clean') {
@@ -36,4 +53,17 @@ export function calculateReflectionStreak(reflections, now = new Date()) {
   }
 
   return streak;
+}
+
+/** True when the user can no longer continue a prior run (gap past catch-up). */
+export function isStreakCatchUpExpired(reflections, now = new Date()) {
+  const byDay = new Map(reflections.map((item) => [item.day_key, item.status]));
+  const { today, yesterday } = reflectionDayKeys(now);
+  const todayConfirmed = byDay.has(today);
+  const yesterdayClean = byDay.get(yesterday) === 'clean';
+  const hasOlderClean = reflections.some(
+    (item) => item.status === 'clean' && item.day_key !== today && item.day_key !== yesterday
+  );
+
+  return !todayConfirmed && !yesterdayClean && hasOlderClean;
 }

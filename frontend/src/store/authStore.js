@@ -1,6 +1,31 @@
 import { create } from 'zustand';
 import { ApiError, authApi, profileApi } from '../services/api';
 import { tokenStorage } from '../services/secureStorage';
+import {
+  registerPushDevice,
+  unregisterPushDevice,
+} from '../services/pushRegistration';
+
+let onSessionChange = null;
+
+/** Used by App bootstrap to re-hydrate reminders without a circular import. */
+export function setAuthSessionListener(listener) {
+  onSessionChange = typeof listener === 'function' ? listener : null;
+}
+
+function notifySessionChange() {
+  if (onSessionChange) {
+    Promise.resolve()
+      .then(() => onSessionChange())
+      .catch(() => {});
+  }
+}
+
+async function afterAuthSuccess(set, token, user) {
+  set({ token, user, loading: false, error: null });
+  registerPushDevice(token).catch(() => {});
+  notifySessionChange();
+}
 
 export const useAuthStore = create((set, get) => ({
   user: null,
@@ -21,6 +46,7 @@ export const useAuthStore = create((set, get) => ({
 
       const { user } = await authApi.me(token);
       set({ user, token, hydrated: true, error: null });
+      registerPushDevice(token).catch(() => {});
     } catch (error) {
       await tokenStorage.clear();
       set({
@@ -37,7 +63,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.signup({ email, password, displayName, username });
       await tokenStorage.save(token);
-      set({ token, user, loading: false, error: null });
+      await afterAuthSuccess(set, token, user);
       return user;
     } catch (error) {
       set({
@@ -53,7 +79,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.login({ identifier, password });
       await tokenStorage.save(token);
-      set({ token, user, loading: false, error: null });
+      await afterAuthSuccess(set, token, user);
       return user;
     } catch (error) {
       set({
@@ -69,7 +95,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.google({ idToken });
       await tokenStorage.save(token);
-      set({ token, user, loading: false, error: null });
+      await afterAuthSuccess(set, token, user);
       return user;
     } catch (error) {
       set({
@@ -85,7 +111,7 @@ export const useAuthStore = create((set, get) => ({
     try {
       const { token, user } = await authApi.resetPassword({ email, code, newPassword });
       await tokenStorage.save(token);
-      set({ token, user, loading: false, error: null });
+      await afterAuthSuccess(set, token, user);
       return user;
     } catch (error) {
       set({
@@ -128,7 +154,10 @@ export const useAuthStore = create((set, get) => ({
   },
 
   logout: async () => {
+    const token = get().token;
+    await unregisterPushDevice(token).catch(() => {});
     await tokenStorage.clear();
     set({ user: null, token: null, error: null, loading: false });
+    notifySessionChange();
   },
 }));
