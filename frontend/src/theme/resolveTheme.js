@@ -11,6 +11,7 @@ export function resolveColorScheme(preference, systemScheme) {
 
 export function createTheme(colorScheme) {
   const colors = colorScheme === 'dark' ? darkColors : lightColors;
+  const isDark = colorScheme === 'dark';
 
   return {
     mode: colorScheme,
@@ -19,6 +20,17 @@ export function createTheme(colorScheme) {
     radii,
     fonts,
     typography,
-    elevation,
+    // Shadows disappear on dark canvases — rely on borders; keep light elevation as-is.
+    elevation: isDark
+      ? {
+          card: {
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0,
+            shadowRadius: 0,
+            elevation: 0,
+          },
+        }
+      : elevation,
   };
 }

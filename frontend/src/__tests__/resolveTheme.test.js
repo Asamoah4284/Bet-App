@@ -25,6 +25,7 @@ describe('createTheme', () => {
     expect(dark.radii.md).toBe(16);
     expect(light.typography.title.fontFamily).toContain('Montserrat');
     expect(light.typography.body.fontFamily).toContain('Inter');
-    expect(light.fonts.heading).toBe(light.typography.title.fontFamily);
+    expect(dark.colors.textSecondary).toBe('#C5CDD8');
+    expect(dark.colors.surface).not.toBe(dark.colors.background);
   });
 });

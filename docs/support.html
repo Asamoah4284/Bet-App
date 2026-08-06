@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Support — Quibet</title>
+  <meta name="description" content="Support and contact for Quibet." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --surface: #ffffff;
+      --text: #2b2d42;
+      --muted: #6b7280;
+      --primary: #1e3a5f;
+      --teal: #2a9d8f;
+      --border: #e3e7ee;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, system-ui, sans-serif;
+      background: #f4f6f9;
+      color: var(--text);
+      line-height: 1.65;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 40px 22px 80px; }
+    a { color: var(--teal); }
+    h1 { font-family: Montserrat, sans-serif; color: var(--primary); font-size: 1.9rem; margin: 0 0 8px; }
+    h2 { font-family: Montserrat, sans-serif; color: var(--primary); font-size: 1.15rem; margin: 0 0 10px; }
+    .meta { color: var(--muted); margin-bottom: 24px; }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 24px;
+      margin-bottom: 16px;
+    }
+    ul { padding-left: 1.2rem; }
+    nav { margin-bottom: 20px; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <nav><a href="index.html">← Quibet Legal</a></nav>
+    <h1>Support</h1>
+    <p class="meta">Quibet help &amp; store contact page</p>
+
+    <div class="card">
+      <h2>Contact the developer</h2>
+      <p>
+        <strong>Asamoah</strong><br />
+        Email: <a href="mailto:REPLACE_WITH_YOUR_EMAIL@example.com">REPLACE_WITH_YOUR_EMAIL@example.com</a><br />
+        Typical response time: within 2–3 business days
+      </p>
+      <p>Please include your platform (Android / iOS), app version, and a short description of the issue.</p>
+    </div>
+
+    <div class="card">
+      <h2>Account &amp; data requests</h2>
+      <p>
+        For privacy questions, account deletion, or data access requests, email the address above with the subject
+        “Quibet privacy request” and the email used for your account.
+      </p>
+      <p>See also the <a href="privacy.html">Privacy Policy</a> and <a href="terms.html">Terms of Use</a>.</p>
+    </div>
+
+    <div class="card">
+      <h2>Crisis support</h2>
+      <p>
+        Quibet is not an emergency service. If you are in immediate danger, contact local emergency services.
+        For gambling harm support, consider local helplines in your country (for example national gambling support lines)
+        and resources listed in the App’s Support screen.
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Common topics</h2>
+      <ul>
+        <li>Notifications not arriving — check OS permission and Reminders settings; use a production/preview build (not Expo Go) for remote push</li>
+        <li>Shield not blocking — requires a native build and system VPN / Network Extension permission</li>
+        <li>Streak reset — daily reflection must be confirmed; missing more than one day resets the streak</li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

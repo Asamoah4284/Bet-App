@@ -113,12 +113,12 @@ export function TabBar({ state, descriptors, navigation, insets: navInsets }) {
     }
   };
 
-  const hairline = isDark ? 'rgba(255, 255, 255, 0.12)' : 'rgba(60, 60, 67, 0.18)';
+  const hairline = isDark ? 'rgba(255, 255, 255, 0.18)' : 'rgba(60, 60, 67, 0.18)';
   // Android blur is weaker — lean on a translucent surface; iOS wash stays very light.
   const frostWash = isDark
     ? Platform.OS === 'ios'
-      ? 'rgba(28, 31, 36, 0.28)'
-      : 'rgba(28, 31, 36, 0.92)'
+      ? 'rgba(26, 34, 48, 0.42)'
+      : 'rgba(26, 34, 48, 0.94)'
     : Platform.OS === 'ios'
       ? 'rgba(249, 249, 249, 0.22)'
       : 'rgba(249, 249, 249, 0.94)';

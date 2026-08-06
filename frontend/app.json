@@ -1,8 +1,11 @@
 {
   "expo": {
     "name": "Quibet",
-    "slug": "quibet",
-    "scheme": "quibet",
+    "slug": "betapp",
+    "scheme": [
+      "betapp",
+      "quibet"
+    ],
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/app-icon.png",
@@ -16,11 +19,18 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.betapp.recovery",
       "infoPlist": {
-        "NSLocalNetworkUsageDescription": "Betapp Shield uses a local on-device filter to block gambling websites."
+        "NSLocalNetworkUsageDescription": "Betapp Shield uses a local on-device filter to block gambling websites.",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
-        "com.apple.developer.networking.networkextension": ["packet-tunnel-provider"],
-        "com.apple.security.application-groups": ["group.com.betapp.recovery.shield"]
+        "com.apple.developer.networking.networkextension": [
+          "packet-tunnel-provider",
+          "packet-tunnel-provider"
+        ],
+        "com.apple.security.application-groups": [
+          "group.com.betapp.recovery.shield",
+          "group.com.betapp.recovery.shield"
+        ]
       }
     },
     "android": {
@@ -33,9 +43,6 @@
     },
     "web": {
       "favicon": "./assets/images/app-icon.png"
-    },
-    "extra": {
-      "API_URL": "http://10.68.134.163:3000"
     },
     "plugins": [
       "expo-secure-store",
@@ -64,6 +71,7 @@
       "./modules/betapp-shield/app.plugin.js"
     ],
     "extra": {
+      "API_URL": "http://10.68.134.163:3000",
       "eas": {
         "projectId": "b6bfcc34-bced-4bbf-a42e-9da79deff37d"
       }

@@ -12,6 +12,7 @@ export function Card({ title, children, style }) {
           backgroundColor: theme.colors.surface,
           borderColor: theme.colors.border,
           borderRadius: theme.radii.lg,
+          borderWidth: theme.mode === 'dark' ? 1.5 : 1,
           ...theme.elevation.card,
         },
         style,
@@ -35,7 +36,6 @@ export function Card({ title, children, style }) {
 const styles = StyleSheet.create({
   card: {
     padding: 18,
-    borderWidth: 1,
     marginBottom: 16,
   },
 });
