@@ -3,7 +3,6 @@ import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Screen } from '../components/Screen';
-import { Card } from '../components/Card';
 import { Button } from '../components/Button';
 import { ModalHeader } from '../components/ModalHeader';
 import { useTheme } from '../theme';
@@ -17,9 +16,32 @@ const SESSION_SECONDS = 60;
 
 function breathingCue(seconds) {
   const position = (SESSION_SECONDS - seconds) % 10;
-  if (position < 4) return 'Breathe in';
-  if (position < 6) return 'Hold gently';
-  return 'Breathe out';
+  if (position < 4) return 'In';
+  if (position < 6) return 'Hold';
+  return 'Out';
+}
+
+function ActionChip({ icon, label, color, muted, onPress }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chip,
+        {
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+          opacity: pressed ? 0.82 : 1,
+        },
+      ]}
+    >
+      <View style={[styles.chipIcon, { backgroundColor: muted }]}>
+        <Ionicons name={icon} size={16} color={color} />
+      </View>
+      <Text style={[styles.chipLabel, { color: theme.colors.text }]}>{label}</Text>
+    </Pressable>
+  );
 }
 
 export function UrgeSOSScreen({ navigation }) {
@@ -104,13 +126,13 @@ export function UrgeSOSScreen({ navigation }) {
   }, [breath, running]);
 
   const cue = useMemo(
-    () => (seconds === 0 ? 'You made space between the urge and the action.' : breathingCue(seconds)),
+    () => (seconds === 0 ? 'You made it through' : breathingCue(seconds)),
     [seconds]
   );
 
   const circleScale = breath.interpolate({
     inputRange: [0, 1],
-    outputRange: [0.72, 1],
+    outputRange: [0.74, 1],
   });
 
   const restart = () => {
@@ -123,181 +145,319 @@ export function UrgeSOSScreen({ navigation }) {
     navigation.navigate('Main', { screen });
   };
 
+  const topReasons = reasons.slice(0, 2);
+  const topActions = actions.slice(0, 3);
+
   return (
-    <Screen scroll>
-      <ModalHeader kicker="Urge SOS" title="This feeling will pass" accent="secondary" />
+    <Screen scroll contentStyle={styles.screen}>
+      <ModalHeader kicker="Urge SOS" title="Ride it out" accent="secondary" />
 
       <LinearGradient
         colors={theme.colors.gradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 0.1, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
         style={[styles.breathCard, { borderRadius: theme.radii.lg }]}
       >
+        <Text style={styles.breathEyebrow}>60-second breathe</Text>
         <Animated.View
           style={[
             styles.breathCircle,
             {
-              backgroundColor: 'rgba(255,255,255,0.2)',
-              borderColor: 'rgba(255,255,255,0.5)',
+              backgroundColor: 'rgba(255,255,255,0.16)',
+              borderColor: 'rgba(255,255,255,0.42)',
               transform: [{ scale: circleScale }],
             },
           ]}
         >
-          <Text style={[styles.timer, { color: theme.colors.textInverse }]}>{seconds}</Text>
-          <Text style={[theme.typography.caption, { color: theme.colors.textInverse }]}>
-            seconds
-          </Text>
+          <Text style={styles.timer}>{seconds}</Text>
+          <Text style={styles.timerCue}>{cue}</Text>
         </Animated.View>
-        <Text style={[theme.typography.subtitle, { color: theme.colors.textInverse }]}>
-          {cue}
-        </Text>
-        <Text
-          style={[
-            theme.typography.caption,
-            { color: theme.colors.textInverse, opacity: 0.82, marginTop: 4 },
-          ]}
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={seconds > 0 ? () => setRunning((c) => !c) : restart}
+          style={styles.timerAction}
         >
-          Slow is enough. You do not need to decide anything right now.
-        </Text>
-        <View style={styles.timerActions}>
-          {seconds > 0 ? (
-            <Pressable
-              accessibilityRole="button"
-              onPress={() => setRunning((current) => !current)}
-              style={styles.timerAction}
-            >
-              <Ionicons
-                name={running ? 'pause' : 'play'}
-                size={18}
-                color={theme.colors.textInverse}
-              />
-              <Text style={[theme.typography.caption, { color: theme.colors.textInverse }]}>
-                {running ? 'Pause' : 'Continue'}
-              </Text>
-            </Pressable>
-          ) : (
-            <Pressable accessibilityRole="button" onPress={restart} style={styles.timerAction}>
-              <Ionicons name="refresh" size={18} color={theme.colors.textInverse} />
-              <Text style={[theme.typography.caption, { color: theme.colors.textInverse }]}>
-                Breathe again
-              </Text>
-            </Pressable>
-          )}
-        </View>
+          <Ionicons
+            name={seconds === 0 ? 'refresh' : running ? 'pause' : 'play'}
+            size={16}
+            color="#FFFFFF"
+          />
+          <Text style={styles.timerActionLabel}>
+            {seconds === 0 ? 'Again' : running ? 'Pause' : 'Resume'}
+          </Text>
+        </Pressable>
       </LinearGradient>
 
-      <Card title="Why you choose recovery">
-        {reasons.map((reason, index) => (
-          <View key={`${reason}-${index}`} style={styles.planRow}>
-            <Ionicons name="heart-outline" size={19} color={theme.colors.accent} />
-            <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>
-              {reason}
-            </Text>
+      {topActions.length ? (
+        <View style={styles.section}>
+          <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+            DO ONE THING
+          </Text>
+          <View
+            style={[
+              styles.panel,
+              {
+                backgroundColor: theme.colors.surface,
+                borderColor: theme.colors.border,
+                borderRadius: theme.radii.lg,
+              },
+            ]}
+          >
+            {topActions.map((action, index) => (
+              <View
+                key={`${action}-${index}`}
+                style={[
+                  styles.planRow,
+                  index < topActions.length - 1
+                    ? { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.colors.border }
+                    : null,
+                ]}
+              >
+                <View
+                  style={[
+                    styles.number,
+                    { backgroundColor: theme.colors.secondaryMuted },
+                  ]}
+                >
+                  <Text style={[styles.numberText, { color: theme.colors.secondary }]}>
+                    {index + 1}
+                  </Text>
+                </View>
+                <Text style={[styles.planText, { color: theme.colors.text }]} numberOfLines={2}>
+                  {action}
+                </Text>
+              </View>
+            ))}
           </View>
-        ))}
-        <Button
-          label="Edit my safety plan"
-          variant="soft"
-          onPress={() => navigation.navigate('SafetyPlan')}
-          style={styles.cardButton}
-        />
-      </Card>
+        </View>
+      ) : null}
 
-      <Card title="Do one safe thing now">
-        {actions.map((action, index) => (
-          <View key={`${action}-${index}`} style={styles.planRow}>
-            <View
-              style={[
-                styles.number,
-                {
-                  backgroundColor: theme.colors.secondaryMuted,
-                  borderRadius: theme.radii.pill,
-                },
-              ]}
-            >
-              <Text style={[theme.typography.caption, { color: theme.colors.secondary }]}>
-                {index + 1}
-              </Text>
-            </View>
-            <Text style={[theme.typography.body, { color: theme.colors.text, flex: 1 }]}>
-              {action}
+      {topReasons.length ? (
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionLabel, { color: theme.colors.textSecondary }]}>
+              YOUR WHY
             </Text>
+            <Pressable onPress={() => navigation.navigate('SafetyPlan')} hitSlop={8}>
+              <Text style={[styles.editLink, { color: theme.colors.primary }]}>Edit</Text>
+            </Pressable>
           </View>
-        ))}
-      </Card>
+          <View style={styles.reasonList}>
+            {topReasons.map((reason, index) => (
+              <View
+                key={`${reason}-${index}`}
+                style={[
+                  styles.reasonChip,
+                  {
+                    backgroundColor: theme.colors.surface,
+                    borderColor: theme.colors.border,
+                  },
+                ]}
+              >
+                <Ionicons name="heart" size={14} color={theme.colors.secondary} />
+                <Text
+                  style={[styles.reasonText, { color: theme.colors.text }]}
+                  numberOfLines={2}
+                >
+                  {reason}
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
-      <View style={styles.actions}>
-        <Button
-          label="Log what triggered this"
+      <View style={styles.chipRow}>
+        <ActionChip
+          icon="create-outline"
+          label="Log urge"
+          color={theme.colors.primary}
+          muted={theme.colors.primaryMuted}
           onPress={() => navigation.replace('LogUrge')}
         />
-        <Button
-          label="Reach my buddies"
-          variant="secondary"
+        <ActionChip
+          icon="people-outline"
+          label="Buddies"
+          color={theme.colors.secondary}
+          muted={theme.colors.secondaryMuted}
           onPress={() => openTab('Buddies')}
         />
-        <Button label="Find immediate support" variant="ghost" onPress={() => openTab('Support')} />
+        <ActionChip
+          icon="heart-outline"
+          label="Support"
+          color={theme.colors.accent}
+          muted={theme.colors.accentMuted}
+          onPress={() => openTab('Support')}
+        />
       </View>
 
-      <Text
-        style={[
-          theme.typography.caption,
-          { color: theme.colors.textSecondary, textAlign: 'center', marginBottom: 12 },
-        ]}
-      >
-        If you may harm yourself or someone else, contact emergency services now.
+      <Button
+        label="I'm okay for now"
+        variant="soft"
+        onPress={() => navigation.goBack()}
+        style={styles.okButton}
+      />
+
+      <Text style={[styles.crisis, { color: theme.colors.textMuted }]}>
+        In crisis? Call emergency services.
       </Text>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
+  screen: {
+    paddingBottom: 28,
+  },
   breathCard: {
     alignItems: 'center',
-    padding: 24,
-    marginBottom: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 20,
+    marginBottom: 22,
+  },
+  breathEyebrow: {
+    color: 'rgba(255,255,255,0.78)',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    marginBottom: 14,
   },
   breathCircle: {
-    width: 154,
-    height: 154,
-    borderRadius: 77,
-    borderWidth: 1,
+    width: 148,
+    height: 148,
+    borderRadius: 74,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 8,
   },
   timer: {
-    fontSize: 38,
+    color: '#FFFFFF',
+    fontSize: 42,
     fontWeight: '800',
-    lineHeight: 54,
+    lineHeight: 48,
+    letterSpacing: -1,
   },
-  timerActions: {
-    marginTop: 16,
+  timerCue: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 2,
   },
   timerAction: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginTop: 18,
     paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.14)',
+  },
+  timerActionLabel: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  section: {
+    marginBottom: 18,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 8,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.1,
+    marginBottom: 8,
+  },
+  editLink: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+  },
+  panel: {
+    borderWidth: 1,
+    overflow: 'hidden',
   },
   planRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-    marginBottom: 12,
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
   },
   number: {
     width: 24,
     height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cardButton: {
-    marginTop: 4,
+  numberText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
-  actions: {
+  planText: {
+    flex: 1,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  reasonList: {
+    gap: 8,
+  },
+  reasonChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10,
-    marginBottom: 18,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+  },
+  reasonText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '500',
+  },
+  chipRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 14,
+  },
+  chip: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 6,
+  },
+  chipIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  chipLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  okButton: {
+    marginBottom: 14,
+  },
+  crisis: {
+    textAlign: 'center',
+    fontSize: 11,
+    fontWeight: '500',
+    marginBottom: 8,
   },
 });

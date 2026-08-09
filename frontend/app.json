@@ -43,7 +43,7 @@
         "backgroundColor": "#1E3A5F",
         "foregroundImage": "./assets/images/adaptive-icon.png"
       }
-    },
+    }, 
     "web": {
       "favicon": "./assets/images/app-icon.png"
     },

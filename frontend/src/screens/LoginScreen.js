@@ -51,7 +51,7 @@ export function LoginScreen({ navigation }) {
         style={styles.hero}
       >
         <View style={styles.heroTop}>
-          <BrandMark size={48} forceLight />
+          <BrandMark size={56} tight forceLight />
           <ThemeToggle compact />
         </View>
         <Text style={[theme.typography.display, styles.heroTitle]}>Welcome back</Text>

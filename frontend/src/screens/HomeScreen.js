@@ -57,9 +57,9 @@ function MissionRow({ done, icon, label, detail, onPress }) {
       style={({ pressed }) => [
         styles.missionRow,
         {
-          backgroundColor: done ? theme.colors.successMuted : theme.colors.surface,
-          borderColor: done ? theme.colors.success : theme.colors.border,
-          opacity: pressed ? 0.8 : 1,
+          backgroundColor: theme.colors.surface,
+          borderColor: theme.colors.border,
+          opacity: pressed ? 0.84 : 1,
         },
       ]}
     >
@@ -67,13 +67,13 @@ function MissionRow({ done, icon, label, detail, onPress }) {
         style={[
           styles.missionCheck,
           {
-            backgroundColor: done ? theme.colors.success : theme.colors.primaryMuted,
-            borderColor: done ? theme.colors.success : 'transparent',
+            backgroundColor: done ? theme.colors.secondaryMuted : theme.colors.primaryMuted,
+            borderColor: done ? theme.colors.secondary : 'transparent',
           },
         ]}
       >
         {done ? (
-          <Ionicons name="checkmark" size={15} color="#FFFFFF" />
+          <Ionicons name="checkmark" size={14} color={theme.colors.secondary} />
         ) : (
           <Ionicons name={icon} size={15} color={theme.colors.primary} />
         )}
@@ -83,21 +83,28 @@ function MissionRow({ done, icon, label, detail, onPress }) {
           style={[
             styles.missionLabel,
             {
-              color: theme.colors.text,
-              textDecorationLine: done ? 'line-through' : 'none',
-              opacity: done ? 0.7 : 1,
+              color: done ? theme.colors.textSecondary : theme.colors.text,
             },
           ]}
         >
           {label}
         </Text>
-        <Text style={[styles.missionDetail, { color: theme.colors.textSecondary }]}>{detail}</Text>
+        <Text
+          style={[
+            styles.missionDetail,
+            { color: done ? theme.colors.secondary : theme.colors.textSecondary },
+          ]}
+        >
+          {done ? 'Completed' : detail}
+        </Text>
       </View>
-      <Ionicons
-        name={done ? 'checkmark-circle' : 'chevron-forward'}
-        size={18}
-        color={done ? theme.colors.success : theme.colors.textMuted}
-      />
+      {done ? (
+        <View style={[styles.missionDonePill, { backgroundColor: theme.colors.secondaryMuted }]}>
+          <Text style={[styles.missionDoneText, { color: theme.colors.secondary }]}>Done</Text>
+        </View>
+      ) : (
+        <Ionicons name="chevron-forward" size={18} color={theme.colors.textMuted} />
+      )}
     </Pressable>
   );
 }
@@ -385,9 +392,31 @@ export function HomeScreen({ navigation }) {
 
         {/* Daily missions */}
         <View style={styles.sectionHeader}>
-          <Text style={[styles.sectionTitle, { color: theme.colors.text }]}>Today’s missions</Text>
-          <View style={[styles.missionScore, { backgroundColor: theme.colors.secondaryMuted }]}>
-            <Text style={[styles.missionScoreText, { color: theme.colors.secondary }]}>
+          <Text style={[styles.sectionTitle, { color: theme.colors.text, marginBottom: 0 }]}>
+            Today’s missions
+          </Text>
+          <View
+            style={[
+              styles.missionScore,
+              {
+                backgroundColor:
+                  missionsDone === missionTotal && missionTotal > 0
+                    ? theme.colors.secondaryMuted
+                    : theme.colors.surfaceMuted,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.missionScoreText,
+                {
+                  color:
+                    missionsDone === missionTotal && missionTotal > 0
+                      ? theme.colors.secondary
+                      : theme.colors.textSecondary,
+                },
+              ]}
+            >
               {missionsDone}/{missionTotal}
             </Text>
           </View>
@@ -774,9 +803,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   missionCheck: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
@@ -792,6 +821,16 @@ const styles = StyleSheet.create({
   missionDetail: {
     fontSize: 11,
     fontWeight: '500',
+  },
+  missionDonePill: {
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  missionDoneText: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.2,
   },
   catchUp: {
     flexDirection: 'row',
