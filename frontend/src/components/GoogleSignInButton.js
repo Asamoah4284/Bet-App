@@ -18,6 +18,8 @@ export function GoogleSignInButton({ style }) {
     } catch (error) {
       if (error instanceof GoogleAuthUnavailableError) {
         Alert.alert('Google sign-in unavailable', error.message);
+      } else if (error?.message) {
+        Alert.alert('Google sign-in failed', error.message);
       }
       // Backend errors already land in authStore.error and show on screen.
     } finally {

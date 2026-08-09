@@ -12,7 +12,20 @@
           "package_name": "com.betapp.recovery"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "564469007711-ap3fmdo605jt4d4p8tboq8blhq8nv355.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.betapp.recovery",
+            "certificate_hash": "897d114567bcef3f70432407ff1f33235bd46306"
+          }
+        },
+        {
+          "client_id": "564469007711-60c4lvk1pfmlcdj4obv2h4nnt7gmh06d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAhV6R3tkY-Nva3BwgoEPkOL_c95CK9d5c"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564469007711-60c4lvk1pfmlcdj4obv2h4nnt7gmh06d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "564469007711-8e46ht0i0k92nptb8716dregdv5ij2a5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dataApp"
+              }
+            }
+          ]
         }
       }
     },
@@ -31,7 +56,12 @@
           "package_name": "com.example.data_app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "564469007711-60c4lvk1pfmlcdj4obv2h4nnt7gmh06d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyAhV6R3tkY-Nva3BwgoEPkOL_c95CK9d5c"
@@ -39,7 +69,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "564469007711-60c4lvk1pfmlcdj4obv2h4nnt7gmh06d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "564469007711-8e46ht0i0k92nptb8716dregdv5ij2a5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.dataApp"
+              }
+            }
+          ]
         }
       }
     }

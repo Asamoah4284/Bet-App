@@ -7,6 +7,7 @@ import { Button } from '../components/Button';
 import { BrandMark } from '../components/BrandMark';
 import { ThemeToggle } from '../components/ThemeToggle';
 import { GoogleSignInButton } from '../components/GoogleSignInButton';
+import { AppleSignInButton } from '../components/AppleSignInButton';
 import { useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
 import {
@@ -149,6 +150,7 @@ export function SignupScreen({ navigation }) {
         </View>
 
         <GoogleSignInButton />
+        <AppleSignInButton style={styles.appleButton} />
       </View>
 
       <Pressable
@@ -202,7 +204,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  dividerRow: {
+  dividerLine: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
@@ -211,6 +213,9 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
+  },
+  appleButton: {
+    marginTop: 10,
   },
   switchRow: {
     alignItems: 'center',

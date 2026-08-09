@@ -132,6 +132,11 @@ export const authApi = {
       method: 'POST',
       body: { idToken },
     }),
+  apple: ({ identityToken, fullName, email }) =>
+    apiRequest('/api/auth/apple', {
+      method: 'POST',
+      body: { identityToken, fullName, email },
+    }),
   forgotPassword: ({ email }) =>
     apiRequest('/api/auth/forgot-password', {
       method: 'POST',

@@ -36,14 +36,15 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
-  // Optional for Google-only accounts.
+  // Optional for Google / Apple-only accounts.
   password_hash: {
     type: String,
-    required: function requiredWithoutGoogle() {
-      return !this.google_id;
+    required: function requiredWithoutSocial() {
+      return !this.google_id && !this.apple_id;
     },
   },
   google_id: { type: String, unique: true, sparse: true },
+  apple_id: { type: String, unique: true, sparse: true },
   display_name: { type: String, required: true, trim: true },
   bio: { type: String, trim: true, maxlength: 160, default: '' },
   leaderboard_opt_in: { type: Boolean, default: false },

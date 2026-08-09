@@ -130,8 +130,12 @@ async function login(req, res, next) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     if (!user.password_hash) {
+      const providers = [];
+      if (user.google_id) providers.push('Google');
+      if (user.apple_id) providers.push('Apple');
+      const label = providers.length ? providers.join(' or ') : 'social';
       return res.status(401).json({
-        error: 'This account uses Google sign-in. Use "Continue with Google" instead.',
+        error: `This account uses ${label} sign-in. Use "Continue with ${providers[0] || 'Google'}" instead.`,
       });
     }
     if (!bcrypt.compareSync(password, user.password_hash)) {
@@ -160,7 +164,7 @@ async function googleAuth(req, res, next) {
     const info = await response.json();
 
     // When GOOGLE_CLIENT_IDS is set (comma-separated), only accept tokens minted
-    // for those OAuth clients.
+    // for those OAuth clients (usually your Web client ID).
     const allowedClients = (process.env.GOOGLE_CLIENT_IDS || '')
       .split(',')
       .map((id) => id.trim())
@@ -176,7 +180,7 @@ async function googleAuth(req, res, next) {
     let user = await User.findOne({ google_id: info.sub });
 
     if (!user) {
-      // Link to an existing email/password account with the same address.
+      // Link to an existing email/password (or Apple) account with the same address.
       user = await User.findOne({ email: info.email.toLowerCase() });
       if (user) {
         user.google_id = info.sub;
@@ -193,6 +197,89 @@ async function googleAuth(req, res, next) {
       if (!user) {
         return res.status(500).json({ error: 'Could not create account, please try again' });
       }
+    }
+
+    res.json({ token: createToken(user._id), user: publicUser(user) });
+  } catch (err) {
+    next(err);
+  }
+}
+
+function applePlaceholderEmail(sub) {
+  const safe = String(sub || 'user')
+    .replace(/[^a-zA-Z0-9]/g, '')
+    .slice(0, 40);
+  return `apple.${safe || 'user'}@privaterelay.quibet.local`;
+}
+
+function displayNameFromApple({ fullName, email, sub }) {
+  if (fullName && String(fullName).trim()) {
+    return String(fullName).trim().slice(0, 80);
+  }
+  if (email && email.includes('@')) {
+    return email.split('@')[0];
+  }
+  return `Apple user ${String(sub).slice(-4)}`;
+}
+
+async function appleAuth(req, res, next) {
+  try {
+    const { identityToken, fullName, email: clientEmail } = req.body;
+    if (!identityToken) {
+      return res.status(400).json({ error: 'Apple identity token is required' });
+    }
+
+    const { verifyAppleIdentityToken } = require('../services/appleAuth');
+    let payload;
+    try {
+      payload = await verifyAppleIdentityToken(identityToken);
+    } catch {
+      return res.status(401).json({ error: 'Invalid Apple identity token' });
+    }
+
+    const appleSub = payload.sub;
+    if (!appleSub) {
+      return res.status(401).json({ error: 'Apple token is missing subject' });
+    }
+
+    // Email is only guaranteed on the first Apple authorization for an app.
+    const emailFromToken =
+      typeof payload.email === 'string' && payload.email.includes('@')
+        ? payload.email.toLowerCase()
+        : null;
+    const emailFromClient =
+      typeof clientEmail === 'string' && clientEmail.includes('@')
+        ? clientEmail.toLowerCase()
+        : null;
+    const email = emailFromToken || emailFromClient;
+
+    let user = await User.findOne({ apple_id: appleSub });
+
+    if (!user && email) {
+      user = await User.findOne({ email });
+      if (user) {
+        user.apple_id = appleSub;
+        await user.save();
+      }
+    }
+
+    if (!user) {
+      user = await createUserWithBuddyCode({
+        email: email || applePlaceholderEmail(appleSub),
+        apple_id: appleSub,
+        display_name: displayNameFromApple({
+          fullName,
+          email,
+          sub: appleSub,
+        }),
+      });
+      if (!user) {
+        return res.status(500).json({ error: 'Could not create account, please try again' });
+      }
+    } else if (fullName && String(fullName).trim() && /^Apple user /i.test(user.display_name || '')) {
+      // Upgrade placeholder names if Apple later provides a real name.
+      user.display_name = String(fullName).trim().slice(0, 80);
+      await user.save();
     }
 
     res.json({ token: createToken(user._id), user: publicUser(user) });
@@ -285,4 +372,4 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { signup, login, googleAuth, forgotPassword, resetPassword, me };
+module.exports = { signup, login, googleAuth, appleAuth, forgotPassword, resetPassword, me };

@@ -115,6 +115,22 @@ export const useAuthStore = create((set, get) => ({
     }
   },
 
+  loginWithApple: async ({ identityToken, fullName, email }) => {
+    set({ loading: true, error: null });
+    try {
+      const { token, user } = await authApi.apple({ identityToken, fullName, email });
+      await tokenStorage.save(token);
+      await afterAuthSuccess(set, token, user);
+      return user;
+    } catch (error) {
+      set({
+        loading: false,
+        error: error.message || 'Unable to sign in with Apple',
+      });
+      throw error;
+    }
+  },
+
   resetPassword: async ({ email, code, newPassword }) => {
     set({ loading: true, error: null });
     try {

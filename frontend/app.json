@@ -18,18 +18,21 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.betapp.recovery",
+      "usesAppleSignIn": true,
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "NSLocalNetworkUsageDescription": "Betapp Shield uses a local on-device filter to block gambling websites.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "entitlements": {
         "com.apple.developer.networking.networkextension": [
-          "packet-tunnel-provider",
           "packet-tunnel-provider"
         ],
         "com.apple.security.application-groups": [
-          "group.com.betapp.recovery.shield",
           "group.com.betapp.recovery.shield"
+        ],
+        "com.apple.developer.applesignin": [
+          "Default"
         ]
       }
     },
@@ -67,11 +70,29 @@
         }
       ],
       "expo-font",
+      "expo-apple-authentication",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "extraPods": [
+              {
+                "name": "GoogleUtilities",
+                "modular_headers": true
+              },
+              {
+                "name": "RecaptchaInterop",
+                "modular_headers": true
+              }
+            ]
+          }
+        }
+      ],
       "@react-native-google-signin/google-signin",
       "./modules/betapp-shield/app.plugin.js"
     ],
     "extra": {
-      "API_URL": "http://10.68.134.163:3000",
+      "API_URL": "https://bet-app-dgqz.onrender.com",
       "eas": {
         "projectId": "b6bfcc34-bced-4bbf-a42e-9da79deff37d"
       }
