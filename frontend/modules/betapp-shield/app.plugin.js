@@ -113,12 +113,47 @@ function configureTunnelBuildSettings(project, targetName, bundleId, development
   });
 }
 
+function ensurePbxSections(project) {
+  // node-xcode's addTarget assumes these exist; fresh Expo projects often don't.
+  const objects = project.hash.project.objects;
+  objects.PBXTargetDependency = objects.PBXTargetDependency || {};
+  objects.PBXContainerItemProxy = objects.PBXContainerItemProxy || {};
+}
+
+function ensureAppexInProductsGroup(project, targetName) {
+  const products = project.pbxGroupByName('Products');
+  if (!products?.children) return;
+
+  const fileRefs = project.pbxFileReferenceSection();
+  const appexName = `${targetName}.appex`;
+  let appexUuid = null;
+
+  Object.keys(fileRefs).forEach((key) => {
+    if (key.endsWith('_comment')) return;
+    const ref = fileRefs[key];
+    if (!ref || typeof ref !== 'object') return;
+    const pathName = unquote(ref.path || ref.name || '');
+    if (pathName === appexName) {
+      appexUuid = key;
+    }
+  });
+
+  if (!appexUuid) return;
+
+  const alreadyChild = products.children.some((child) => child.value === appexUuid);
+  if (!alreadyChild) {
+    products.children.push({ value: appexUuid, comment: appexName });
+  }
+}
+
 function withPacketTunnelXcodeProject(config) {
   return withXcodeProject(config, (config) => {
     const project = config.modResults;
     const bundleId = config.ios?.bundleIdentifier || 'com.betapp.recovery';
     const developmentTeam = config.ios?.appleTeamId;
     const targetName = TUNNEL_NAME;
+    const sourceFiles = ['PacketTunnelProvider.swift'];
+    const configFiles = ['Info.plist', `${targetName}.entitlements`];
 
     const mainTarget = project.getFirstTarget();
     if (mainTarget?.uuid) {
@@ -130,6 +165,28 @@ function withPacketTunnelXcodeProject(config) {
     }
 
     if (!project.pbxTargetByName(targetName)) {
+      ensurePbxSections(project);
+
+      // Create the group + file refs before addTarget (OneSignal / expo-share-intent style).
+      const extGroup = project.addPbxGroup(
+        [...sourceFiles, ...configFiles],
+        targetName,
+        targetName
+      );
+
+      const groups = project.hash.project.objects.PBXGroup;
+      Object.keys(groups).forEach((key) => {
+        const group = groups[key];
+        if (typeof group !== 'object' || !group) return;
+        // Root project group has neither name nor path.
+        if (group.name === undefined && group.path === undefined) {
+          project.addToPbxGroup(extGroup.uuid, key);
+        }
+      });
+
+      // addTarget already creates the product + Embed/Copy Files phase on the main app.
+      // Do NOT add a second Embed App Extensions phase — that orphans the .appex ref and
+      // breaks CocoaPods post_install (xcodeproj "no parent for object …appex").
       const target = project.addTarget(
         targetName,
         'app_extension',
@@ -137,35 +194,15 @@ function withPacketTunnelXcodeProject(config) {
         `${bundleId}${TUNNEL_BUNDLE_SUFFIX}`
       );
 
-      project.addBuildPhase([], 'PBXSourcesBuildPhase', 'Sources', target.uuid);
+      project.addBuildPhase(sourceFiles, 'PBXSourcesBuildPhase', 'Sources', target.uuid);
       project.addBuildPhase([], 'PBXFrameworksBuildPhase', 'Frameworks', target.uuid);
       project.addBuildPhase([], 'PBXResourcesBuildPhase', 'Resources', target.uuid);
 
-      // Embed App Extensions copy phase on the main app.
-      if (mainTarget?.uuid) {
-        project.addBuildPhase(
-          [`${targetName}.appex`],
-          'PBXCopyFilesBuildPhase',
-          'Embed App Extensions',
-          mainTarget.uuid,
-          'app_extension'
-        );
-        try {
-          project.addTargetDependency(mainTarget.uuid, [target.uuid]);
-        } catch {
-          // Ignore duplicate dependency errors.
-        }
-      }
-
-      const groupKey = project.pbxCreateGroup(targetName, targetName);
-      const mainGroupId = project.getFirstProject().firstProject.mainGroup;
-      project.addToPbxGroup(groupKey, mainGroupId);
-
-      project.addSourceFile(`${targetName}/PacketTunnelProvider.swift`, { target: target.uuid }, groupKey);
-      project.addFile(`${targetName}/Info.plist`, groupKey);
-      project.addFile(`${targetName}/${targetName}.entitlements`, groupKey);
     }
 
+    // Always re-parent the product file — CocoaPods post_install crashes if the
+    // .appex PBXFileReference is not in a PBXGroup (Products).
+    ensureAppexInProductsGroup(project, targetName);
     configureTunnelBuildSettings(project, targetName, bundleId, developmentTeam);
     return config;
   });
