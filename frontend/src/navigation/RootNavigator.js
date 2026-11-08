@@ -38,6 +38,7 @@ import {
 } from '../services/notificationRouting';
 import { ToastHost } from '../components/ToastHost';
 import { AchievementAlertBridge } from '../components/AchievementAlertBridge';
+import { SHIELD_ENABLED } from '../config/features';
 
 const Stack = createStackNavigator();
 const linking = {
@@ -122,7 +123,7 @@ export function RootNavigator({ bootstrapping }) {
             <Stack.Screen name="StreakDetail" component={StreakDetailScreen} />
             <Stack.Screen name="Privacy" component={PrivacyScreen} />
             <Stack.Screen name="Support" component={SupportScreen} />
-            <Stack.Screen name="Shield" component={ShieldScreen} />
+            {SHIELD_ENABLED ? <Stack.Screen name="Shield" component={ShieldScreen} /> : null}
           </>
         )}
         {hasCompletedOnboarding ? (

@@ -15,6 +15,7 @@ import { useSubscriptionStore } from '../store/subscriptionStore';
 import { profileApi, API_BASE_URL } from '../services/api';
 import { achievementSummary } from '../services/achievements';
 import { normalizeSubscription, subscriptionPackageCopy } from '../services/subscription';
+import { SHIELD_ENABLED } from '../config/features';
 
 function MenuRow({ icon, color, muted, title, detail, onPress }) {
   const theme = useTheme();
@@ -326,14 +327,16 @@ export function ProfileScreen({ navigation }) {
           detail={user?.leaderboardOptIn ? 'Friends and global rankings' : 'Private until you opt in'}
           onPress={() => navigation.navigate('Leaderboard')}
         />
-        <MenuRow
-          icon="shield-outline"
-          color={theme.colors.primary}
-          muted={theme.colors.primaryMuted}
-          title="Shield"
-          detail="Block betting websites on this phone"
-          onPress={() => navigation.navigate('Shield')}
-        />
+        {SHIELD_ENABLED ? (
+          <MenuRow
+            icon="shield-outline"
+            color={theme.colors.primary}
+            muted={theme.colors.primaryMuted}
+            title="Shield"
+            detail="Block betting websites on this phone"
+            onPress={() => navigation.navigate('Shield')}
+          />
+        ) : null}
         <MenuRow
           icon="shield-checkmark-outline"
           color={theme.colors.primary}

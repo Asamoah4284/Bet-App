@@ -6,6 +6,7 @@ import { BackHeader } from '../components/BackHeader';
 import { Card } from '../components/Card';
 import { useTheme } from '../theme';
 import { useAuthStore } from '../store/authStore';
+import { SHIELD_ENABLED } from '../config/features';
 
 const ITEMS = [
   {
@@ -28,11 +29,15 @@ const ITEMS = [
     title: 'Shared buddy profile',
     text: 'Your invitation link reveals your display name, username, bio and buddy code so another person can request to connect.',
   },
-  {
-    icon: 'shield-outline',
-    title: 'Shield website blocking',
-    text: 'When you enable Shield, a local on-device DNS filter blocks betting websites (Android VPN / iOS Packet Tunnel). The blocklist syncs from the server, but browsing traffic is filtered on-device and is never uploaded.',
-  },
+  ...(SHIELD_ENABLED
+    ? [
+        {
+          icon: 'shield-outline',
+          title: 'Shield website blocking',
+          text: 'When you enable Shield, a local on-device DNS filter blocks betting websites (Android VPN / iOS Packet Tunnel). The blocklist syncs from the server, but browsing traffic is filtered on-device and is never uploaded.',
+        },
+      ]
+    : []),
 ];
 
 export function PrivacyScreen() {
