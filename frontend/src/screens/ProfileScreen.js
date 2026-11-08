@@ -15,7 +15,7 @@ import { useSubscriptionStore } from '../store/subscriptionStore';
 import { profileApi, API_BASE_URL } from '../services/api';
 import { achievementSummary } from '../services/achievements';
 import { normalizeSubscription, subscriptionPackageCopy } from '../services/subscription';
-import { SHIELD_ENABLED } from '../config/features';
+import { PAYMENTS_ENABLED, SHIELD_ENABLED } from '../config/features';
 
 function MenuRow({ icon, color, muted, title, detail, onPress }) {
   const theme = useTheme();
@@ -240,6 +240,8 @@ export function ProfileScreen({ navigation }) {
         </Pressable>
       ) : null}
 
+      {PAYMENTS_ENABLED ? (
+      <>
       <Text style={[theme.typography.caption, styles.section, { color: theme.colors.textSecondary }]}>
         SUBSCRIPTION
       </Text>
@@ -306,6 +308,8 @@ export function ProfileScreen({ navigation }) {
           ) : null}
         </View>
       </View>
+      </>
+      ) : null}
 
       <Text style={[theme.typography.caption, styles.section, { color: theme.colors.textSecondary }]}>
         RECOVERY

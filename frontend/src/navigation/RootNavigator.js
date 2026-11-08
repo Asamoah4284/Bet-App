@@ -38,7 +38,7 @@ import {
 } from '../services/notificationRouting';
 import { ToastHost } from '../components/ToastHost';
 import { AchievementAlertBridge } from '../components/AchievementAlertBridge';
-import { SHIELD_ENABLED } from '../config/features';
+import { PAYMENTS_ENABLED, SHIELD_ENABLED } from '../config/features';
 
 const Stack = createStackNavigator();
 const linking = {
@@ -96,7 +96,7 @@ export function RootNavigator({ bootstrapping }) {
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
         ) : !user ? (
           <Stack.Screen name="Auth" component={AuthStack} />
-        ) : !isPremium ? (
+        ) : !isPremium && PAYMENTS_ENABLED ? (
           <>
             <Stack.Screen name="Paywall" component={PaywallScreen} />
             <Stack.Screen name="PaywallSupport" component={SupportScreen} />

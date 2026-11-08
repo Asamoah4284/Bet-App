@@ -1,3 +1,5 @@
+import { Platform } from 'react-native';
+
 /**
  * Feature flags.
  *
@@ -8,3 +10,12 @@
  * "betapp-shield" from expo.autolinking.exclude in package.json.
  */
 export const SHIELD_ENABLED = false;
+
+/**
+ * PAYMENTS_ENABLED: Moolre MoMo checkout / paywall.
+ * Off on iOS because App Store guideline 3.1.1 requires Apple In-App Purchase for
+ * digital subscriptions. On iOS the app is unlocked without a paywall and shows no
+ * prices or purchase prompts. Android keeps the Moolre paywall.
+ * Replace with StoreKit In-App Purchase on iOS later.
+ */
+export const PAYMENTS_ENABLED = Platform.OS !== 'ios';
